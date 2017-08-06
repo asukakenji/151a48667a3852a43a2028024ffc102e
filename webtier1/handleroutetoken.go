@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/rand"
 	"net/http"
 
+	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 )
 
@@ -17,7 +17,7 @@ func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
 		// This section deals with the logic when the request does not contain
 		// {token}. It should be impossible to reach here since the engine
 		// should not call this method if {token} doesn't exist.
-		// TODO: Should log this!
+		glog.Errorf("GetShortestDrivingRoute: request with no token: %#v", req)
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(struct {
@@ -25,8 +25,9 @@ func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
 		}{Error: "internal server error (539cd7a5469b42ec1a53306df7fb2495)"})
 		return
 	}
+
 	if !IsToken(token) {
-		fmt.Printf("Bad Token: %s\n", token)
+		glog.Errorf("GetShortestDrivingRoute: bad token: %q", token)
 		// Return error
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(http.StatusBadRequest)
@@ -35,9 +36,12 @@ func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
 		}{Error: "invalid token"})
 		return
 	}
-	fmt.Printf("Token: %s\n", token)
+
+	glog.Infof("GetShortestDrivingRoute: token: %q", token)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
+
+	// TODO: Implement this!
 	r := rand.Float64()
 	if r < 1.0/3.0 {
 		json.NewEncoder(w).Encode(DrivingRoute{
