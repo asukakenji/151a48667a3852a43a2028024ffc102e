@@ -25,11 +25,11 @@ type DrivingRoute struct {
 }
 
 type Question struct {
-	Token     string
-	Locations Locations
+	Token     string    `json:"token"`
+	Locations Locations `json:"locations"`
 }
 
 type Answer struct {
-	Timestamp    int64
-	DrivingRoute *DrivingRoute
+	Timestamp    int64         `json:"timestamp"`
+	DrivingRoute *DrivingRoute `json:"driving_route"`
 }
