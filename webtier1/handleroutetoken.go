@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net/http"
 
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 )
@@ -44,7 +45,7 @@ func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
 	// TODO: Implement this!
 	r := rand.Float64()
 	if r < 1.0/3.0 {
-		json.NewEncoder(w).Encode(DrivingRoute{
+		json.NewEncoder(w).Encode(common.DrivingRoute{
 			Status: "success",
 			Path: [][]string{
 				{"22.372081", "114.107877"},
@@ -55,11 +56,11 @@ func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
 			TotalTime:     456,
 		})
 	} else if r < 2.0/3.0 {
-		json.NewEncoder(w).Encode(DrivingRoute{
+		json.NewEncoder(w).Encode(common.DrivingRoute{
 			Status: "in progress",
 		})
 	} else {
-		json.NewEncoder(w).Encode(DrivingRoute{
+		json.NewEncoder(w).Encode(common.DrivingRoute{
 			Status: "failure",
 			Error:  "unknown error",
 		})

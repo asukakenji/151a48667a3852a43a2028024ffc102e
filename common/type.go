@@ -1,4 +1,4 @@
-package main
+package common
 
 type Locations [][]string
 
@@ -22,4 +22,14 @@ type DrivingRoute struct {
 
 	// Error is the error occurred during the calculation.
 	Error string `json:"error,omitempty"`
+}
+
+type Question struct {
+	Token     string
+	Locations Locations
+}
+
+type Answer struct {
+	Timestamp    int64
+	DrivingRoute *DrivingRoute
 }

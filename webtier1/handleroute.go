@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/golang/glog"
 )
 
 // SubmitStartPointAndDropOffLocations deals with the request "POST /route".
 func SubmitStartPointAndDropOffLocations(w http.ResponseWriter, req *http.Request) {
-	var locations Locations
+	var locations common.Locations
 	// --- Copied from http.Request.Body ---
 	// For server requests the Request Body is always non-nil but will return
 	// EOF immediately when no body is present. The Server will close the
