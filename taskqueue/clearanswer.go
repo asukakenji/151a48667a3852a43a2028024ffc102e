@@ -1,27 +1,33 @@
 package taskqueue
 
 import (
+	"bytes"
+	"encoding/json"
+
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/golang/glog"
 	"github.com/kr/beanstalk"
 )
 
-func ClearAnswer(conn *beanstalk.Conn, token string) (err error) {
+func ClearAnswer(conn *beanstalk.Conn, token string) (id uint64, a *common.Answer, err error) {
 	tube := beanstalk.Tube{
 		Conn: conn,
 		Name: token,
 	}
+
+	var lastBody []byte
 	for {
-		var id uint64
-		id, _, err = tube.PeekReady()
+		var body []byte
+		id, body, err = tube.PeekReady()
 		if err != nil {
 			if cerr, ok := err.(beanstalk.ConnError); !ok {
 				glog.Errorf("ClearAnswer: Non-ConnError: %#v", err)
-				return err
+				return 0, nil, err
 			} else if cerr.Err == beanstalk.ErrNotFound {
-				return nil
+				break
 			}
 			glog.Errorf("ClearAnswer: Unknown error: %#v", err)
-			return err
+			return 0, nil, err
 		}
 		glog.Infof("ClearAnswer: Peek Ready: id: %d", id)
 
@@ -31,14 +37,23 @@ func ClearAnswer(conn *beanstalk.Conn, token string) (err error) {
 		if err != nil {
 			if cerr, ok := err.(beanstalk.ConnError); !ok {
 				glog.Errorf("ClearAnswer: Non-ConnError: %#v", err)
-				return err
+				return 0, nil, err
 			} else if cerr.Err == beanstalk.ErrNotFound {
 				glog.Errorf("ClearAnswer: Not found")
-				return err
+				return 0, nil, err
 			}
 			glog.Errorf("ClearAnswer: Unknown error: %#v", err)
-			return err
+			return 0, nil, err
 		}
 		glog.Infof("ClearAnswer: Deleted: id: %d", id)
+		lastBody = body
 	}
+
+	err = json.NewDecoder(bytes.NewReader(lastBody)).Decode(a)
+	if err != nil {
+		glog.Errorf("ClearAnswer: Decode JSON: %#v", err)
+		return 0, nil, err
+	}
+
+	return id, a, nil
 }

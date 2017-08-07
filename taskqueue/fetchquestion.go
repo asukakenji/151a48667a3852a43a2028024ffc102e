@@ -38,6 +38,7 @@ func FetchQuestion(conn *beanstalk.Conn, timeout time.Duration) (id uint64, q *c
 			glog.Errorf("FetchQuestion: Decode JSON: %#v", err)
 			return 0, nil, err
 		}
-		return id, q, err
+
+		return id, q, nil
 	}
 }

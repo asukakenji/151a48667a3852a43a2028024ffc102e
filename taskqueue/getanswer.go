@@ -36,5 +36,5 @@ func GetAnswer(conn *beanstalk.Conn, token string) (id uint64, a *common.Answer,
 		return 0, nil, err
 	}
 
-	return id, a, err
+	return id, a, nil
 }

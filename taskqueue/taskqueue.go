@@ -8,7 +8,7 @@
 //     - ttr: 3 seconds
 // - Handle Route Token:
 //   - USE "<token>"
-//   - RESERVE
+//   - PEEK-READY
 //   - Return result
 
 // Tier 2:
@@ -17,7 +17,7 @@
 //   - RESERVE
 //   - USE "<token>"
 //   - Loop
-//     - RESERVE
+//     - PEEK-READY
 //     - DELETE
 //       - id: id of job just reserved
 //   - Depending on the result:

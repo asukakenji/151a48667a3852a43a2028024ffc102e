@@ -11,12 +11,6 @@ import (
 )
 
 func SetAnswer(conn *beanstalk.Conn, token string, dr *common.DrivingRoute, pri uint32, delay, ttr time.Duration) (id uint64, err error) {
-	err = ClearAnswer(conn, token)
-	if err != nil {
-		glog.Errorf("SetAnswer: Error from ClearAnswer: %#v", err)
-		return 0, err
-	}
-
 	buf := new(bytes.Buffer)
 	err = json.NewEncoder(buf).Encode(common.Answer{
 		Timestamp:    time.Now().Unix(),
@@ -35,7 +29,7 @@ func SetAnswer(conn *beanstalk.Conn, token string, dr *common.DrivingRoute, pri 
 		buf.Bytes(),               // body
 		uint32(time.Now().Unix()), // pri
 		time.Duration(0),          // delay
-		5*time.Second,             // ttr
+		time.Duration(0),          // ttr
 	)
 	if err != nil {
 		if cerr, ok := err.(beanstalk.ConnError); !ok {
