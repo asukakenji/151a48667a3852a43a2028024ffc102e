@@ -12,29 +12,28 @@ import (
 
 // GetShortestDrivingRoute deals with the request "GET /route/{token}".
 func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
-	params := mux.Vars(req)
-	token, ok := params["token"]
+	status := http.StatusOK
+	var myerr common.MyError
+
+	vars := mux.Vars(req)
+	token, ok := vars["token"]
 	if !ok {
 		// This section deals with the logic when the request does not contain
 		// {token}. It should be impossible to reach here since the engine
 		// should not call this method if {token} doesn't exist.
-		glog.Errorf("GetShortestDrivingRoute: request with no token: %#v", req)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(struct {
-			Error string `json:"error"`
-		}{Error: "internal server error (539cd7a5469b42ec1a53306df7fb2495)"})
-		return
+		status = http.StatusInternalServerError
+		myerr = common.WrapError(nil, "539cd7a5469b42ec1a53306df7fb2495")
+	} else if !common.IsToken(token) {
+		status = http.StatusBadRequest
+		myerr = common.NewInvalidTokenError(token)
 	}
-
-	if !IsToken(token) {
-		glog.Errorf("GetShortestDrivingRoute: bad token: %q", token)
-		// Return error
+	if status != http.StatusOK {
+		glog.Errorf("GetShortestDrivingRoute: %s", myerr.Error())
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(status)
 		json.NewEncoder(w).Encode(struct {
 			Error string `json:"error"`
-		}{Error: "invalid token"})
+		}{Error: myerr.String()})
 		return
 	}
 

@@ -9,17 +9,21 @@ import (
 )
 
 func main() {
-	isLogToStderrOverridden := false
+	// Check whether "-logtostderr=true" or "-logtostderr=false" is provided in
+	// command line. If yes, obey the command line option. Otherwise, use the
+	// default, "true".
+	isLogToStderrProvided := false
 	flag.Parse()
 	flag.Visit(func(f *flag.Flag) {
 		if f.Name == "logtostderr" {
-			isLogToStderrOverridden = true
+			isLogToStderrProvided = true
 		}
 	})
-	if !isLogToStderrOverridden {
+	if !isLogToStderrProvided {
 		flag.Set("logtostderr", "true")
 	}
 
+	// Setup and start an HTTP server.
 	router := mux.NewRouter()
 	router.HandleFunc("/route", SubmitStartPointAndDropOffLocations).Methods("POST")
 	router.HandleFunc("/route/{token}", GetShortestDrivingRoute).Methods("GET")
