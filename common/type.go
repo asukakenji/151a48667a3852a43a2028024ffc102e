@@ -3,28 +3,71 @@ package common
 import (
 	"encoding/json"
 	"io"
+	"strconv"
 )
 
-// Locations is a list (slice) of latitude-longitude pairs.
-//
-// The minimum length of a Locations is 2:
-// the first element being the route start location,
-// and the second element being the route end location.
-//
-// Each element in a Locations value is a latitude-longitude pair encoded as a slice of strings.
-// Therefore, its length is exactly 2:
-// the first element being the latitude,
-// and the seconds element being the longitude.
-//
-// Example
-//
-// Here is an example of a valid Locations:
-//     var locs Locations = Locations{
-//         {"22.372081", "114.107877"},
-//         {"22.284419", "114.159510"},
-//         {"22.326442", "114.167811"},
-//     }
+/*
+Locations is a list (slice) of latitude-longitude pairs.
+
+Description
+
+The minimum length of a Locations is 2:
+the first element being the route start location,
+and the second element being the route end location.
+
+Each element in a Locations value is a latitude-longitude pair encoded as a slice of strings.
+Therefore, its length is exactly 2:
+the first element being the latitude,
+and the seconds element being the longitude.
+
+A latitude value of 0 represents the Equator.
+A latitude value of -90 represents the South Pole,
+while +90 represents the North Pole.
+Values smaller than -90 or larger than +90 are invalid.
+
+A longitude value of 0 represents the prime meridian at Greenwich.
+A negative value represents locations to the West of the prime meridian,
+while a positive value represents locations to the East of the prime meridian.
+
+Example
+
+Here is an example of a valid Locations:
+
+	var locs Locations = Locations{
+		{"22.372081", "114.107877"},
+		{"22.284419", "114.159510"},
+		{"22.326442", "114.167811"},
+	}
+*/
 type Locations [][]string
+
+// isLatitude checks whether s is a valid latitude.
+// TODO: Check whether NaN, Inf, etc. are accepted in ParseFloat.
+// TODO: Check exactly 6 digits after decimal point.
+func isLatitude(s string) bool {
+	f, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return false
+	}
+	if f < -90 || f > 90 {
+		return false
+	}
+	return true
+}
+
+// isLongitude checks whether s is a valid longitude.
+// TODO: Check whether NaN, Inf, etc. are accepted in ParseFloat.
+// TODO: Check exactly 6 digits after decimal point.
+func isLongitude(s string) bool {
+	f, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return false
+	}
+	if f < -180 || f > 180 {
+		return false
+	}
+	return true
+}
 
 // LocationsFromJSON reads from r, parses the content as JSON, and returns the
 // Locations value.
@@ -42,34 +85,72 @@ func LocationsFromJSON(r io.Reader) (locs Locations, err error) {
 		if len(loc) != 2 {
 			return nil, InvalidLocationError{locs, i}
 		}
-		if !IsLatitude(loc[0]) {
+		if !isLatitude(loc[0]) {
 			return nil, LatitudeError{locs, i}
 		}
-		if !IsLongitude(loc[1]) {
+		if !isLongitude(loc[1]) {
 			return nil, LongitudeError{locs, i}
 		}
 	}
 	return locs, nil
 }
 
+/*
+DrivingRoute contains a driving route response.
+
+Description
+
+The field Status is mandatory.
+Whether other fields exist depends on Status.
+See "Examples" below for valid combinations.
+
+The field Status is the status of the response.
+It is either "success", "in progress", or "failure".
+
+The field Path is the path of the shortest driving route.
+
+The field TotalDistance is the total driving distance (in meters) of the path above.
+Since the circumference of the Earth is around 40,075km = 40,075,000m,
+uint should be sufficient no matter it is 32-bit or 64-bit.
+
+The field TotalTime is the estimated total time (in seconds) needed for driving along the path above.
+Since an unsigned 32-bit integer can represent a duration of more than 136 years,
+uint should be sufficient no matter it is 32-bit or 64-bit.
+
+The field Error is the error occurred during the process.
+
+Examples
+
+Here is an example of a "success" DrivingRoute:
+
+	var dr0 DrivingRoute = DrivingRoute{
+		Status: "success",
+		Path: Locations{
+			{"22.372081", "114.107877"},
+			{"22.326442", "114.167811"},
+			{"22.284419", "114.159510"},
+		},
+		TotalDistance: 20000,
+		TotalTime:     1800,
+	}
+
+Here is an example of a "in progress" DrivingRoute:
+
+	var dr1 DrivingRoute = DrivingRoute{
+		Status: "in progress",
+	}
+
+Here is an example of a "failure" DrivingRoute:
+
+	var dr2 DrivingRoute = DrivingRoute{
+		Status: "failure",
+		Error:  "internal server error (539cd7a5469b42ec1a53306df7fb2495)",
+	}
+*/
 type DrivingRoute struct {
-	// Status is the status of the response.
-	// It is either "success", "in progress", or "failure".
-	Status string `json:"status"`
-
-	// Path is the path of the shortest driving route.
-	Path Locations `json:"path,omitempty"`
-
-	// TotalDistance is the total driving distance (in meters) of the path above.
-	// The circumference of the Earth is around 40,075km = 40,075,000m.
-	// So, uint should be sufficient no matter it is 32-bit or 64-bit.
-	TotalDistance uint `json:"total_distance,omitempty"`
-
-	// TotalTime is the estimated total time (in seconds) needed for driving along the path above.
-	// An unsigned 32-bit integer can represent a duration of more than 136 years.
-	// So, uint should be sufficient no matter it is 32-bit or 64-bit.
-	TotalTime uint `json:"total_time,omitempty"`
-
-	// Error is the error occurred during the calculation.
-	Error string `json:"error,omitempty"`
+	Status        string    `json:"status"`
+	Path          Locations `json:"path,omitempty"`
+	TotalDistance uint      `json:"total_distance,omitempty"`
+	TotalTime     uint      `json:"total_time,omitempty"`
+	Error         string    `json:"error,omitempty"`
 }
