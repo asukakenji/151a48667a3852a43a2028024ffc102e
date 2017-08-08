@@ -24,8 +24,8 @@ func AddQuestion(conn *beanstalk.Conn, token string, locations common.Locations,
 	id, err = conn.Put(
 		buf.Bytes(),               // body
 		uint32(time.Now().Unix()), // pri
-		time.Duration(0),          // delay
-		executionTimeLimit,        // ttr
+		time.Duration(0),          // delay: immediately ready
+		executionTimeLimit,        // ttr: let caller set how long it is allowed to run
 	)
 	if err != nil {
 		if cerr, ok := err.(beanstalk.ConnError); !ok {

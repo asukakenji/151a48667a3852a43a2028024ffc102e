@@ -28,8 +28,8 @@ func SetAnswer(conn *beanstalk.Conn, token string, dr *common.DrivingRoute, pri 
 	id, err = tube.Put(
 		buf.Bytes(),               // body
 		uint32(time.Now().Unix()), // pri
-		time.Duration(0),          // delay
-		time.Duration(0),          // ttr
+		time.Duration(0),          // delay: immediately ready
+		time.Duration(0),          // ttr: zero as answers are never reserved
 	)
 	if err != nil {
 		if cerr, ok := err.(beanstalk.ConnError); !ok {
