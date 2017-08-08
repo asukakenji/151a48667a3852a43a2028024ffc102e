@@ -23,13 +23,3 @@ type DrivingRoute struct {
 	// Error is the error occurred during the calculation.
 	Error string `json:"error,omitempty"`
 }
-
-type Question struct {
-	Token     string    `json:"token"`
-	Locations Locations `json:"locations"`
-}
-
-type Answer struct {
-	Timestamp    int64         `json:"timestamp"`
-	DrivingRoute *DrivingRoute `json:"driving_route"`
-}

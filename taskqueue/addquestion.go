@@ -12,7 +12,7 @@ import (
 
 func AddQuestion(conn *beanstalk.Conn, token string, locations common.Locations, executionTimeLimit time.Duration) (id uint64, err error) {
 	buf := new(bytes.Buffer)
-	err = json.NewEncoder(buf).Encode(common.Question{
+	err = json.NewEncoder(buf).Encode(Question{
 		Token:     token,
 		Locations: locations,
 	})

@@ -12,7 +12,7 @@ import (
 
 func SetAnswer(conn *beanstalk.Conn, token string, dr *common.DrivingRoute, pri uint32, delay, ttr time.Duration) (id uint64, err error) {
 	buf := new(bytes.Buffer)
-	err = json.NewEncoder(buf).Encode(common.Answer{
+	err = json.NewEncoder(buf).Encode(Answer{
 		Timestamp:    time.Now().Unix(),
 		DrivingRoute: dr,
 	})

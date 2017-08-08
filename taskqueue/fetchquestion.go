@@ -5,12 +5,11 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/golang/glog"
 	"github.com/kr/beanstalk"
 )
 
-func FetchQuestion(conn *beanstalk.Conn, timeout time.Duration) (id uint64, q *common.Question, err error) {
+func FetchQuestion(conn *beanstalk.Conn, timeout time.Duration) (id uint64, q *Question, err error) {
 	for {
 		var body []byte
 		id, body, err = conn.Reserve(
