@@ -63,7 +63,7 @@ type Causer interface {
 	Cause() error
 }
 
-// JSONDecodeError is used to indicate an error occurred
+// JSONEncodeError is used to indicate an error occurred
 // when a value is encoded to a JSON message.
 // It implements the Causer interface.
 type JSONEncodeError struct {

@@ -3,6 +3,7 @@ package common
 import (
 	"encoding/json"
 	"io"
+	"regexp"
 	"strconv"
 )
 
@@ -41,10 +42,42 @@ Here is an example of a valid Locations:
 */
 type Locations [][]string
 
+const (
+	integralPart   = `(?:-?|-?0|-?[1-9][0-9]*)`
+	fractionalPart = `[0-9]*`
+)
+
+var (
+	decimalRegex = regexp.MustCompile(
+		`^(?:` +
+			integralPart + `|` +
+			`\.` + fractionalPart + `|` +
+			integralPart + `\.` + fractionalPart +
+			`)$`,
+	)
+)
+
+// isLatitude checks whether s is a valid decimal.
+func isDecimal(s string) bool {
+	switch s {
+	case "":
+		return false
+	case "-":
+		return false
+	case ".":
+		return false
+	case "-.":
+		return false
+	default:
+		return decimalRegex.MatchString(s)
+	}
+}
+
 // isLatitude checks whether s is a valid latitude.
-// TODO: Check whether NaN, Inf, etc. are accepted in ParseFloat.
-// TODO: Check exactly 6 digits after decimal point.
 func isLatitude(s string) bool {
+	if !isDecimal(s) {
+		return false
+	}
 	f, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		return false
@@ -56,9 +89,10 @@ func isLatitude(s string) bool {
 }
 
 // isLongitude checks whether s is a valid longitude.
-// TODO: Check whether NaN, Inf, etc. are accepted in ParseFloat.
-// TODO: Check exactly 6 digits after decimal point.
 func isLongitude(s string) bool {
+	if !isDecimal(s) {
+		return false
+	}
 	f, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		return false
