@@ -64,7 +64,29 @@ type Causer interface {
 }
 
 // JSONDecodeError is used to indicate an error occurred
-// when a JSON message is decoded.
+// when a value is encoded to a JSON message.
+// It implements the Causer interface.
+type JSONEncodeError struct {
+	cause error
+}
+
+func (err JSONEncodeError) Cause() error {
+	return err.cause
+}
+
+func (err JSONEncodeError) Error() string {
+	return fmt.Sprintf(
+		"JSONEncodeError: %#v",
+		err.cause,
+	)
+}
+
+func (err JSONEncodeError) String() string {
+	return "internal server error (JSONEncodeError)"
+}
+
+// JSONDecodeError is used to indicate an error occurred
+// when a value is decoded from a JSON message.
 // It implements the Causer interface.
 type JSONDecodeError struct {
 	cause error
@@ -74,15 +96,15 @@ func (err JSONDecodeError) Cause() error {
 	return err.cause
 }
 
-func (err JSONDecodeError) String() string {
-	return "invalid JSON"
-}
-
 func (err JSONDecodeError) Error() string {
 	return fmt.Sprintf(
 		"JSONDecodeError: %#v",
 		err.cause,
 	)
+}
+
+func (err JSONDecodeError) String() string {
+	return "invalid JSON"
 }
 
 // LocationsError is used to indicate an invalid Locations value.
@@ -103,17 +125,17 @@ func (err InsufficientLocationCountError) Locations() Locations {
 	return err.locs
 }
 
-func (err InsufficientLocationCountError) String() string {
-	return fmt.Sprintf(
-		"insufficient number of locations: expected >= 2, got %d",
-		len(err.locs),
-	)
-}
-
 func (err InsufficientLocationCountError) Error() string {
 	return fmt.Sprintf(
 		"InsufficientLocationCountError: %#v",
 		err.locs,
+	)
+}
+
+func (err InsufficientLocationCountError) String() string {
+	return fmt.Sprintf(
+		"insufficient number of locations: expected >= 2, got %d",
+		len(err.locs),
 	)
 }
 
@@ -133,6 +155,13 @@ func (err InvalidLocationError) Index() int {
 	return err.index
 }
 
+func (err InvalidLocationError) Error() string {
+	return fmt.Sprintf(
+		"InvalidLocationError: %#v",
+		err.locs[err.index],
+	)
+}
+
 func (err InvalidLocationError) String() string {
 	if err.index == 0 {
 		return "invalid route start location"
@@ -140,13 +169,6 @@ func (err InvalidLocationError) String() string {
 	return fmt.Sprintf(
 		"invalid drop off location #%d",
 		err.index,
-	)
-}
-
-func (err InvalidLocationError) Error() string {
-	return fmt.Sprintf(
-		"InvalidLocationError: %#v",
-		err.locs[err.index],
 	)
 }
 
@@ -166,6 +188,13 @@ func (err LatitudeError) Index() int {
 	return err.index
 }
 
+func (err LatitudeError) Error() string {
+	return fmt.Sprintf(
+		"LatitudeError: %#v",
+		err.locs[err.index][0],
+	)
+}
+
 func (err LatitudeError) String() string {
 	if err.index == 0 {
 		return fmt.Sprintf(
@@ -176,13 +205,6 @@ func (err LatitudeError) String() string {
 	return fmt.Sprintf(
 		"invalid drop off latitude #%d: %q",
 		err.index,
-		err.locs[err.index][0],
-	)
-}
-
-func (err LatitudeError) Error() string {
-	return fmt.Sprintf(
-		"LatitudeError: %#v",
 		err.locs[err.index][0],
 	)
 }
@@ -203,23 +225,23 @@ func (err LongitudeError) Index() int {
 	return err.index
 }
 
-func (err LongitudeError) String() string {
-	if err.index == 0 {
-		return fmt.Sprintf(
-			"invalid route start latitude: %q",
-			err.locs[err.index][1],
-		)
-	}
+func (err LongitudeError) Error() string {
 	return fmt.Sprintf(
-		"invalid drop off latitude #%d: %q",
-		err.index,
+		"LongitudeError: %#v",
 		err.locs[err.index][1],
 	)
 }
 
-func (err LongitudeError) Error() string {
+func (err LongitudeError) String() string {
+	if err.index == 0 {
+		return fmt.Sprintf(
+			"invalid route start longitude: %q",
+			err.locs[err.index][1],
+		)
+	}
 	return fmt.Sprintf(
-		"LongitudeError: %#v",
+		"invalid drop off longitude #%d: %q",
+		err.index,
 		err.locs[err.index][1],
 	)
 }
@@ -238,16 +260,16 @@ func (err InvalidTokenError) Token() string {
 	return err.token
 }
 
-func (err InvalidTokenError) String() string {
+func (err InvalidTokenError) Error() string {
 	return fmt.Sprintf(
-		"invalid token: %q",
+		"InvalidTokenError: %#v",
 		err.token,
 	)
 }
 
-func (err InvalidTokenError) Error() string {
+func (err InvalidTokenError) String() string {
 	return fmt.Sprintf(
-		"InvalidTokenError: %#v",
+		"invalid token: %q",
 		err.token,
 	)
 }
