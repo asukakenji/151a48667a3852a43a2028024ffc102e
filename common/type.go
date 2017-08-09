@@ -106,9 +106,9 @@ func isLongitude(s string) bool {
 // LocationsFromJSON reads from r, parses the content as JSON, and returns the
 // Locations value.
 func LocationsFromJSON(r io.Reader) (locs Locations, err error) {
-	err = json.NewDecoder(r).Decode(&locs)
-	if err != nil {
-		return nil, JSONDecodeError{err}
+	_err := json.NewDecoder(r).Decode(&locs)
+	if _err != nil {
+		return nil, JSONDecodeError{_err}
 	}
 
 	if len(locs) < 2 {
