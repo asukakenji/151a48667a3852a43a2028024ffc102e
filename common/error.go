@@ -27,30 +27,30 @@ type MyError interface {
 // The returned error implements the Causer interface.
 // The original error could be found by calling Cause.
 func WrapError(cause error, hash string) Causer {
-	return unknownError{cause, hash}
+	return wrappedError{cause, hash}
 }
 
-// unknownError is used to implement the WrapError function.
+// wrappedError is used to implement the WrapError function.
 // It implements the Causer interface.
-type unknownError struct {
+type wrappedError struct {
 	cause error
 	hash  string
 }
 
-func (err unknownError) Cause() error {
+func (err wrappedError) Cause() error {
 	return err.cause
 }
 
-func (err unknownError) Error() string {
+func (err wrappedError) Error() string {
 	return fmt.Sprintf(
 		"internal server error (%s)",
 		err.hash,
 	)
 }
 
-func (err unknownError) ErrorDetails() string {
+func (err wrappedError) ErrorDetails() string {
 	return fmt.Sprintf(
-		"UnknownError (%s): %#v",
+		"WrappedError (%s): %#v",
 		err.hash,
 		err.cause,
 	)
