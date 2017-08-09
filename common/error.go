@@ -2,41 +2,46 @@ package common
 
 import "fmt"
 
+/*
+MyError is the root type of all errors defined in this project.
+It extends 2 interfaces: error and fmt.Stringer.
+
+The Error function required by the error interface
+is used for returning an internal error message for logging:
+
+	Error() string
+
+The String function required by the fmt.Stringer interface
+is used for returning an external error message for a client:
+
+	String() string
+*/
 type MyError interface {
 	error
 	fmt.Stringer
 }
 
-func WrapError(cause error, hash string) MyError {
-	return UnknownError{cause, hash}
+// WrapError wraps a (generic) error value to a MyError value.
+// Doing so allows the logic of the API client to be unified to deal with only MyError.
+//
+// The returned error implements the Causer interface.
+// The original error could be found by calling Cause.
+func WrapError(cause error, hash string) Causer {
+	return unknownError{cause, hash}
 }
 
-type Causer interface {
-	MyError
-	Cause() error
-}
-
-type UnknownError struct {
+// unknownError is used to implement the WrapError function.
+// It implements the Causer interface.
+type unknownError struct {
 	cause error
 	hash  string
 }
 
-func (err UnknownError) Cause() error {
+func (err unknownError) Cause() error {
 	return err.cause
 }
 
-func (err UnknownError) Hash() string {
-	return err.hash
-}
-
-func (err UnknownError) String() string {
-	return fmt.Sprintf(
-		"internal server error (%s)",
-		err.hash,
-	)
-}
-
-func (err UnknownError) Error() string {
+func (err unknownError) Error() string {
 	return fmt.Sprintf(
 		"UnknownError (%s): %#v",
 		err.hash,
@@ -44,6 +49,23 @@ func (err UnknownError) Error() string {
 	)
 }
 
+func (err unknownError) String() string {
+	return fmt.Sprintf(
+		"internal server error (%s)",
+		err.hash,
+	)
+}
+
+// Causer is an interface for errors having a cause.
+// It extends the MyError interface.
+type Causer interface {
+	MyError
+	Cause() error
+}
+
+// JSONDecodeError is used to indicate an error occurred
+// when a JSON message is decoded.
+// It implements the Causer interface.
 type JSONDecodeError struct {
 	cause error
 }
@@ -63,11 +85,16 @@ func (err JSONDecodeError) Error() string {
 	)
 }
 
-type InvalidLocationsError interface {
+// LocationsError is used to indicate an invalid Locations value.
+// It extends the MyError interface.
+type LocationsError interface {
 	MyError
 	Locations() Locations
 }
 
+// InsufficientLocationCountError indicates
+// there are not enough locations in a Locations value.
+// It implements the LocationsError interface.
 type InsufficientLocationCountError struct {
 	locs Locations
 }
@@ -90,6 +117,9 @@ func (err InsufficientLocationCountError) Error() string {
 	)
 }
 
+// InvalidLocationError indicates an element (a location) in a Locations value
+// does not have exactly 2 elements (latitude and longitude).
+// It implements the LocationsError interface.
 type InvalidLocationError struct {
 	locs  Locations
 	index int
@@ -120,6 +150,9 @@ func (err InvalidLocationError) Error() string {
 	)
 }
 
+// LatitudeError indicates an invalid latitude of
+// an element (a location) in a Locations value.
+// It implements the LocationsError interface.
 type LatitudeError struct {
 	locs  Locations
 	index int
@@ -154,6 +187,9 @@ func (err LatitudeError) Error() string {
 	)
 }
 
+// LongitudeError indicates an invalid longitude of
+// an element (a location) in a Locations value.
+// It implements the LocationsError interface.
 type LongitudeError struct {
 	locs  Locations
 	index int
@@ -188,6 +224,8 @@ func (err LongitudeError) Error() string {
 	)
 }
 
+// InvalidTokenError indicates an invalid token.
+// It implements the MyError interface.
 type InvalidTokenError struct {
 	token string
 }
@@ -209,7 +247,7 @@ func (err InvalidTokenError) String() string {
 
 func (err InvalidTokenError) Error() string {
 	return fmt.Sprintf(
-		"TokenError: %#v",
+		"InvalidTokenError: %#v",
 		err.token,
 	)
 }

@@ -23,7 +23,7 @@ func SubmitStartPointAndDropOffLocations(w http.ResponseWriter, req *http.Reques
 		case common.JSONDecodeError:
 			status = http.StatusBadRequest
 			myerr = err
-		case common.InvalidLocationsError:
+		case common.LocationsError:
 			status = http.StatusBadRequest
 			myerr = err
 		default:
