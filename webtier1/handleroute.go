@@ -3,15 +3,22 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/taskqueue"
 	"github.com/golang/glog"
+	"github.com/kr/beanstalk"
 )
 
 // SubmitStartPointAndDropOffLocations deals with the request "POST /route".
 func SubmitStartPointAndDropOffLocations(w http.ResponseWriter, req *http.Request) {
+	addr := "127.0.0.1:11300"    // TODO: Customize: addr
+	timeLimit := 5 * time.Second // TODO: Customize: timeLimit
 	status := http.StatusOK
-	var myerr common.MyError
+	var token string
+	var id uint64
+	var err error
 
 	// --- Copied from http.Request.Body ---
 	// For server requests the Request Body is always non-nil but will return
@@ -19,34 +26,40 @@ func SubmitStartPointAndDropOffLocations(w http.ResponseWriter, req *http.Reques
 	// request body. The ServeHTTP Handler does not need to.
 	locs, err := common.LocationsFromJSON(req.Body)
 	if err != nil {
-		switch err := err.(type) {
-		case common.JSONDecodeError:
-			status = http.StatusBadRequest
-			myerr = err
-		case common.LocationsError:
-			status = http.StatusBadRequest
-			myerr = err
-		default:
-			status = http.StatusInternalServerError
-			myerr = common.WrapError(err, "a95d9878a129695be71d2f9abdd0d828")
-		}
-	}
-	if status != http.StatusOK {
-		glog.Errorf("SubmitStartPointAndDropOffLocations: %s", err.Error())
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(status)
-		json.NewEncoder(w).Encode(struct {
-			Error string `json:"error"`
-		}{Error: myerr.String()})
-		return
+		status = http.StatusBadRequest
+		goto HandleError
 	}
 
-	glog.Infof("SubmitStartPointAndDropOffLocations: locations: %#v", locs)
+	token = common.NewToken()
+
+	err = taskqueue.WithConnection(addr, func(conn *beanstalk.Conn) error {
+		_id, _err := taskqueue.AddQuestion(conn, token, locs, timeLimit)
+		id = _id
+		return _err
+	})
+	if err != nil {
+		status = http.StatusInternalServerError
+		goto HandleError
+	}
+
+	glog.Infof("SubmitStartPointAndDropOffLocations: id: %d, token: %q, locations: %#v", id, token, locs)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-
-	// TODO: Implement this!
 	json.NewEncoder(w).Encode(struct {
 		Token string `json:"token"`
-	}{Token: common.NewToken()})
+	}{Token: token})
+	return
+
+HandleError:
+	if myerr, ok := err.(common.MyError); ok {
+		glog.Errorf("SubmitStartPointAndDropOffLocations: %s", myerr.ErrorDetails())
+	} else {
+		glog.Errorf("SubmitStartPointAndDropOffLocations: type assertion failed for error %#v", err)
+		status = http.StatusInternalServerError
+	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(struct {
+		Error string `json:"error"`
+	}{Error: err.Error()})
 }

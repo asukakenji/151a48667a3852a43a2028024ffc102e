@@ -2,7 +2,6 @@ package taskqueue
 
 import (
 	"bytes"
-	"encoding/json"
 	"time"
 
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
@@ -10,12 +9,14 @@ import (
 	"github.com/kr/beanstalk"
 )
 
-func AddQuestion(conn *beanstalk.Conn, token string, locations common.Locations, executionTimeLimit time.Duration) (id uint64, err error) {
+// timeLimit = execution time limit
+func AddQuestion(conn *beanstalk.Conn, token string, locs common.Locations, timeLimit time.Duration) (id uint64, err error) {
 	buf := new(bytes.Buffer)
-	err = json.NewEncoder(buf).Encode(Question{
+	q := Question{
 		Token:     token,
-		Locations: locations,
-	})
+		Locations: locs,
+	}
+	err = q.ToJSON(buf)
 	if err != nil {
 		glog.Errorf("AddQuestion: Encode JSON: %#v", err)
 		return 0, err
@@ -25,7 +26,7 @@ func AddQuestion(conn *beanstalk.Conn, token string, locations common.Locations,
 		buf.Bytes(),               // body
 		uint32(time.Now().Unix()), // pri
 		time.Duration(0),          // delay: immediately ready
-		executionTimeLimit,        // ttr: let caller set how long it is allowed to run
+		timeLimit,                 // ttr: let caller set how long it is allowed to run
 	)
 	if err != nil {
 		if cerr, ok := err.(beanstalk.ConnError); !ok {

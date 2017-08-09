@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/golang/glog"
 	"github.com/kr/beanstalk"
 )
 
-func GetAnswer(conn *beanstalk.Conn, token string) (id uint64, a *Answer, err error) {
+func getAnswer(conn *beanstalk.Conn, token string) (id uint64, a *Answer, err error) {
 	tube := beanstalk.Tube{
 		Conn: conn,
 		Name: token,
@@ -36,4 +37,12 @@ func GetAnswer(conn *beanstalk.Conn, token string) (id uint64, a *Answer, err er
 	}
 
 	return id, a, nil
+}
+
+func GetAnswer(conn *beanstalk.Conn, token string) (id uint64, dr *common.DrivingRoute, err error) {
+	id, a, err := getAnswer(conn, token)
+	if err != nil {
+		return 0, nil, err
+	}
+	return id, a.DrivingRoute, nil
 }
