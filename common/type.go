@@ -35,9 +35,9 @@ Example
 Here is an example of a valid Locations:
 
 	var locs Locations = Locations{
-		{"22.372081", "114.107877"},
-		{"22.284419", "114.159510"},
-		{"22.326442", "114.167811"},
+		{"22.372081", "114.107877"}, // "11 Hoi Shing Rd, Tsuen Wan, Hong Kong"
+		{"22.284419", "114.159510"}, // "Laguna City, Central, Hong Kong"
+		{"22.326442", "114.167811"}, // "789 Nathan Rd, Mong Kok, Hong Kong"
 	}
 */
 type Locations [][]string
@@ -160,9 +160,9 @@ Here is an example of a "success" DrivingRoute:
 	var dr0 DrivingRoute = DrivingRoute{
 		Status: "success",
 		Path: Locations{
-			{"22.372081", "114.107877"},
-			{"22.326442", "114.167811"},
-			{"22.284419", "114.159510"},
+			{"22.372081", "114.107877"}, // "11 Hoi Shing Rd, Tsuen Wan, Hong Kong"
+			{"22.326442", "114.167811"}, // "789 Nathan Rd, Mong Kok, Hong Kong"
+			{"22.284419", "114.159510"}, // "Laguna City, Central, Hong Kong"
 		},
 		TotalDistance: 20000,
 		TotalTime:     1800,
