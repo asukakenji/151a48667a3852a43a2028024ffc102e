@@ -3,9 +3,10 @@ package main
 /*
 
 Held-Karp
----------
+=========
 
-Example 1:
+Example 1
+---------
 
   |  A   B   C   D
 --+---------------
@@ -14,48 +15,30 @@ B |  2  --   7   3
 C |  9   6  --  12
 D | 10   4   8  --
 
-c(B, {}) = mAB =  1 (parent = A)
-c(C, {}) = mAC = 15 (parent = A)
-c(D, {}) = mAD =  6 (parent = A)
+c(B, {}) = mAB =  1 [mAB]
+c(C, {}) = mAC = 15 [mAC]
+c(D, {}) = mAD =  6 [mAD]
 
-c(C, {B}) = mBC + c(B, {}) =  7 +  1 =  8 (parent = B)
-c(D, {B}) = mBD + c(B, {}) =  3 +  1 =  4 (parent = B)
-c(B, {C}) = mCB + c(C, {}) =  6 + 15 = 21 (parent = C)
-c(D, {C}) = mCD + c(C, {}) = 12 + 15 = 27 (parent = C)
-c(B, {D}) = mDB + c(D, {}) =  4 +  6 = 10 (parent = D)
-c(C, {D}) = mDC + c(D, {}) =  8 +  6 = 14 (parent = D)
+c(C, {B}) = mBC + c(B, {}) =  7 +  1 =  8 [c(B, {})]
+c(D, {B}) = mBD + c(B, {}) =  3 +  1 =  4 [c(B, {})]
+c(B, {C}) = mCB + c(C, {}) =  6 + 15 = 21 [c(C, {})]
+c(D, {C}) = mCD + c(C, {}) = 12 + 15 = 27 [c(C, {})]
+c(B, {D}) = mDB + c(D, {}) =  4 +  6 = 10 [c(D, {})]
+c(C, {D}) = mDC + c(D, {}) =  8 +  6 = 14 [c(D, {})]
 
-c(B, {C,D}) = min(mCB + c(C, {D}), mDB + c(D, {C}))
-            = min(6 + 14 (parent = C), 4 + 27 (parent = D))
-            = min(20 (parent = C), 31 (parent = D))
-            = 20 (parent = C)
-c(C, {B,D}) = min(mBC + c(B, {D}), mDC + c(D, {B}))
-            = min(7 + 10 (parent = B), 8 + 4 (parent = D))
-            = min(17 (parent = B), 12 (parent = D))
-            = 12 (parnet = D)
-c(D, {B,C}) = min(mBD + c(B, {C}), mCD + c(C, {B}))
-            = min(3 + 21 (parent = B), 12 + 8 (parent = C))
-            = min(24 (parent = B), 20 (parent = C))
-            = 20 (parent = C)
+c(B, {C,D}) = min(mCB + c(C, {D}), mDB + c(D, {C})) = min(6 + 14,  4 + 27) = min(20, 31) = 20 [c(C, {D})]
+c(C, {B,D}) = min(mBC + c(B, {D}), mDC + c(D, {B})) = min(7 + 10,  8 +  4) = min(17, 12) = 12 [c(D, {B})]
+c(D, {B,C}) = min(mBD + c(B, {C}), mCD + c(C, {B})) = min(3 + 21, 12 +  8) = min(24, 20) = 20 [c(C, {B})]
 
-c(A,{B,C,D}) = min(
-                   mBA + c(B, {C,D}),
-                   mCA + c(C, {B,D}),
-                   mDA + c(D, {B,C}),
-               )
-             = min(
-                    2 + 20 (parent = B),
-                    9 + 12 (parent = C),
-                   10 + 20 (parent = D)
-               )
-             = min (
-                   22 (parent = B),
-                   21 (parent = C),
-                   30 (parent = D)
-               )
-             = 21 (parent = C)
+c(A,{B,C,D}) = min(mBA + c(B, {C,D}), mCA + c(C, {B,D}), mDA + c(D, {B,C}))
+             = min(2 + 20, 9 + 12, 10 + 20)
+             = min(22, 21, 30)
+             = 21 [c(C, {B,D})]
 
 Tour: A <- C <- D <- B <- A
+
+Example 2
+---------
 
   |  A   B   C   D   E
 --+-------------------
@@ -64,5 +47,48 @@ B | 15  --  16   4   2
 C |  3   5  --   2   4
 D | 19   6  18  --   3
 E | 16   4   7  16  --
+
+c(B, {}) = mAB = 20 [mAB]
+c(C, {}) = mAC = 30 [mAC]
+c(D, {}) = mAD = 10 [mAD]
+c(E, {}) = mAE = 11 [mAE]
+
+c(C, {B}) = mBC + c(B, {}) = 16 + 20 = 36 [c(B, {})]
+c(D, {B}) = mBD + c(B, {}) =  4 + 20 = 24 [c(B, {})]
+c(E, {B}) = mBE + c(B, {}) =  2 + 20 = 22 [c(B, {})]
+c(B, {C}) = mCB + c(C, {}) =  5 + 30 = 35 [c(C, {})]
+c(D, {C}) = mCD + c(C, {}) =  2 + 30 = 32 [c(C, {})]
+c(E, {C}) = mCE + c(C, {}) =  4 + 30 = 34 [c(C, {})]
+c(B, {D}) = mDB + c(D, {}) =  6 + 10 = 16 [c(D, {})]
+c(C, {D}) = mDC + c(D, {}) = 18 + 10 = 28 [c(D, {})]
+c(E, {D}) = mDE + c(D, {}) =  3 + 10 = 13 [c(D, {})]
+c(B, {E}) = mEB + c(E, {}) =  4 + 11 = 15 [c(E, {})]
+c(C, {E}) = mEC + c(E, {}) =  7 + 11 = 18 [c(E, {})]
+c(D, {E}) = mED + c(E, {}) = 16 + 11 = 27 [c(E, {})]
+
+c(D, {B,C}) = min(mBD + c(B, {C}), mCD + c(C, {B})) = min( 4 + 35,  2 + 36) = min(39, 38) = 38 [c(C, {B})]
+c(E, {B,C}) = min(mBE + c(B, {C}), mCE + c(C, {B})) = min( 2 + 35,  4 + 36) = min(37, 40) = 37 [c(B, {C})]
+c(C, {B,D}) = min(mBC + c(B, {D}), mDC + c(D, {B})) = min(16 + 16, 18 + 24) = min(32, 42) = 32 [c(B, {D})]
+c(E, {B,D}) = min(mBE + c(B, {D}), mDE + c(D, {B})) = min( 2 + 16,  3 + 24) = min(18, 27) = 18 [c(B, {D})]
+c(C, {B,E}) = min(mBC + c(B, {E}), mEC + c(E, {B})) = min(16 + 15,  7 + 22) = min(31, 29) = 29 [c(E, {B})]
+c(D, {B,E}) = min(mBD + c(B, {E}), mED + c(E, {B})) = min( 4 + 15, 16 + 22) = min(19, 38) = 19 [c(B, {E})]
+c(B, {C,D}) = min(mCB + c(C, {D}), mDB + c(D, {C})) = min( 5 + 28,  6 + 32) = min(33, 38) = 33 [c(C, {D})]
+c(E, {C,D}) = min(mCE + c(C, {D}), mDE + c(D, {C})) = min( 4 + 28,  3 + 32) = min(32, 35) = 32 [c(C, {D})]
+c(B, {C,E}) = min(mCB + c(C, {E}), mEB + c(E, {C})) = min( 5 + 18,  4 + 34) = min(23, 38) = 23 [c(C, {E})]
+c(D, {C,E}) = min(mCD + c(C, {E}), mED + c(E, {C})) = min( 2 + 18, 16 + 34) = min(20, 50) = 20 [c(C, {E})]
+c(B, {D,E}) = min(mDB + c(D, {E}), mEB + c(E, {D})) = min( 6 + 27,  4 + 13) = min(33, 17) = 17 [c(E, {D})]
+c(C, {D,E}) = min(mDC + c(D, {E}), mEC + c(E, {D})) = min(18 + 27,  7 + 13) = min(45, 20) = 20 [c(E, {D})]
+
+c(B, {C,D,E}) = min(mCB + c(C, {D,E}), mDB + c(D, {C,E}), mEB + c(E, {C,D})) = min( 5 + 20,  6 + 20,  4 + 32) = min(25, 26, 36) = 25 [c(C, {D,E})]
+c(C, {B,D,E}) = min(mBC + c(B, {D,E}), mDC + c(D, {B,E}), mEC + c(E, {B,D})) = min(16 + 17, 18 + 19,  7 + 18) = min(35, 37, 25) = 25 [c(E, {B,D})]
+c(D, {B,C,E}) = min(mBD + c(B, {C,E}), mCD + c(C, {B,E}), mED + c(E, {B,C})) = min( 4 + 23,  2 + 29, 16 + 37) = min(27, 31, 53) = 27 [c(B, {C,E})]
+c(E, {B,C,D}) = min(mBE + c(B, {C,D}), mCE + c(C, {B,D}), mDE + c(D, {B,C})) = min( 2 + 33,  4 + 32,  3 + 38) = min(35, 36, 41) = 35 [c(B, {C,D})]
+
+c(A, {B,C,D,E}) = min(mBA + c(B, {C,D,E}), mCA + c(C, {B,D,E}), mDA + c(D, {B,C,E}), mEA + c(E, {B,C,D})
+                = min(15 + 25, 3 + 25, 19 + 27, 16 + 35)
+                = min(40, 28, 46, 51)
+                = 28 [c(C, {B,D,E})]
+
+Tour: A <- C <- E <- B <- D <- A
 
 */
