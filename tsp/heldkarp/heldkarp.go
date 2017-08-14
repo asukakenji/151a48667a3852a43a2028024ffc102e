@@ -1,4 +1,4 @@
-package main
+package heldkarp
 
 import (
 	"fmt"

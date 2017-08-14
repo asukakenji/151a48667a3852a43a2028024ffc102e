@@ -1,8 +1,9 @@
-package main
+package bruteforce
 
 import (
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/constant"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/matrix"
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/tsp"
 )
 
 func permutateExceptFirstElement(f func([]int), d int, s []int) {
@@ -25,20 +26,7 @@ func PermutateExceptFirstElement(f func([]int), s []int) {
 	}
 }
 
-func PathCost(m matrix.Matrix, path []int) int {
-	cost := 0
-	size := len(path)
-	for i := 1; i < size; i++ {
-		cost += m.Get(path[i-1], path[i])
-	}
-	return cost
-}
-
-func TourCost(m matrix.Matrix, path []int) int {
-	return PathCost(m, path) + m.Get(path[len(path)-1], path[0])
-}
-
-func TravellingSalesmanNaive(m matrix.Matrix) (cost int, path []int) {
+func travellingSalesman(m matrix.Matrix, costFunc func(matrix.Matrix, []int) int) (cost int, path []int) {
 	size, _ := m.Size()
 	indices := make([]int, size)
 	for i := range indices {
@@ -48,11 +36,19 @@ func TravellingSalesmanNaive(m matrix.Matrix) (cost int, path []int) {
 	minimumCost := constant.MaxInt
 	minimumPath := make([]int, size)
 	PermutateExceptFirstElement(func(path []int) {
-		cost := PathCost(m, path)
+		cost := costFunc(m, path)
 		if cost < minimumCost {
 			minimumCost = cost
 			copy(minimumPath, path)
 		}
 	}, indices)
 	return minimumCost, minimumPath
+}
+
+func TravellingSalesmanPath(m matrix.Matrix) (cost int, path []int) {
+	return travellingSalesman(m, tsp.PathCost)
+}
+
+func TravellingSalesmanTour(m matrix.Matrix) (cost int, path []int) {
+	return travellingSalesman(m, tsp.TourCost)
 }

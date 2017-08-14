@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/matrix"
-
 	"googlemaps.github.io/maps"
 )
 
-func main1() {
+func main() {
 	c, err := maps.NewClient(maps.WithAPIKey(os.Args[1]))
 	if err != nil {
 		panic(err)
@@ -57,27 +55,4 @@ func main1() {
 		}
 	}
 	fmt.Printf("%#v\n\n", resp)
-}
-
-func main() {
-	// https://youtu.be/vNqE_LDTsa0
-	m := matrix.NewSquareMatrix([][]int{
-		{-1, 7, 6, 8, 4},
-		{7, -1, 8, 5, 6},
-		{6, 8, -1, 9, 7},
-		{8, 5, 9, -1, 8},
-		{4, 6, 7, 8, -1},
-	})
-	// https://youtu.be/FJkT_dRjX94
-	// https://youtu.be/KzWC-t1y8Ac
-	m = matrix.NewSquareMatrix([][]int{
-		{-1, 20, 30, 10, 11},
-		{15, -1, 16, 4, 2},
-		{3, 5, -1, 2, 4},
-		{19, 6, 18, -1, 3},
-		{16, 4, 7, 16, -1},
-	})
-	cost, path := TravellingSalesmanNaive(m)
-	fmt.Printf("Cost: %d\n", cost)
-	fmt.Printf("Path: %v\n", path)
 }
