@@ -362,7 +362,7 @@ func TestNumberOfTrailingZerosForPowerOfTwo(t *testing.T) {
 		set      uint64
 		expected uint
 	}{
-		{0x0000000000000000, 64},
+		// {0x0000000000000000, 64},
 		{0x0000000000000001, 0},
 		{0x0000000000000002, 1},
 		{0x0000000000000004, 2},
@@ -477,6 +477,27 @@ func TestInsertZero(t *testing.T) {
 			t.Errorf(
 				"InsertZero(0x%016x, %d) = 0x%016x, expected 0x%016x",
 				c.x, c.index, got, c.expected,
+			)
+		}
+	}
+}
+
+func TestToString(t *testing.T) {
+	cases := []struct {
+		x        uint64
+		expected string
+	}{
+		{0, "0"},
+		{1, "1"},
+		{2, "10"},
+		{3, "11"},
+	}
+	for _, c := range cases {
+		got := ToString(c.x)
+		if got != c.expected {
+			t.Errorf(
+				"ToString(0x%016x) = %s, expected %s",
+				c.x, got, c.expected,
 			)
 		}
 	}

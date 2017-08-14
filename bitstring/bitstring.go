@@ -207,7 +207,7 @@ var tableForNumberOfTrailingZerosForPowerOfTwo = []uint{
 
 /*
 NumberOfTrailingZerosForPowerOfTwo returns the number of trailing 0-bits in x.
-x must be a power of 2. Otherwise, the behavior is undefined.
+x must be a positive integer being a power of 2. Otherwise, the behavior is undefined.
 
 Reference
 
@@ -251,6 +251,9 @@ Here are some examples:
 	ToString(9) // "1001"
 */
 func ToString(x uint64) string {
+	if x == 0 {
+		return "0"
+	}
 	s := ""
 	for x != 0 {
 		if x&1 == 0 {
