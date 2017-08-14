@@ -50,7 +50,7 @@ Here are some examples:
 
 Reference
 
-Hacker's Delight: Section 2-1
+Hacker's Delight: Section 2-1 (http://www.hackersdelight.org/basics2.pdf)
 */
 func SetBitAtIndex(x uint64, index uint) uint64 {
 	return x | (1 << index)
@@ -72,7 +72,7 @@ Here are some examples:
 
 Reference
 
-Hacker's Delight: Section 2-1
+Hacker's Delight: Section 2-1 (http://www.hackersdelight.org/basics2.pdf)
 */
 func ResetBitAtIndex(x uint64, index uint) uint64 {
 	return x &^ (1 << index)
@@ -91,7 +91,7 @@ Here are some examples:
 
 Reference
 
-Hacker's Delight: Section 2-1
+Hacker's Delight: Section 2-1 (http://www.hackersdelight.org/basics2.pdf)
 */
 func SetRightmostZero(x uint64) uint64 {
 	return x | (x + 1)
@@ -110,7 +110,7 @@ Here are some examples:
 
 Reference
 
-Hacker's Delight: Section 2-1
+Hacker's Delight: Section 2-1 (http://www.hackersdelight.org/basics2.pdf)
 */
 func ResetRightmostOne(x uint64) uint64 {
 	return x & (x - 1)
@@ -133,7 +133,7 @@ Here are some examples:
 
 Reference
 
-Hacker's Delight: Figure 2-1
+Hacker's Delight: Figure 2-1 (http://www.hackersdelight.org/basics2.pdf)
 */
 func NextNumberWithSameBitCount(x uint64) uint64 {
 	smallest := x & -x
@@ -148,21 +148,23 @@ NumberOfTrailingZeros returns the number of trailing 0-bits in x.
 
 Reference
 
-Hacker's Delight: Figure 5-14 (ntz4a)
+Hacker's Delight: Figure 5-14 (ntz4a) (http://www.hackersdelight.org/hdcodetxt/ntz.c.txt)
 */
-func NumberOfTrailingZeros(x uint64) uint {
-	if x == 0 {
+func NumberOfTrailingZeros(i uint64) uint {
+	if i == 0 {
 		return 64
 	}
-	n := uint(63)
-	var a uint
 
-	b := uint(uint32(x))
+	n := uint32(63)
+
+	var a uint32
+	b := uint32(i)
+
 	if b != 0 {
 		n = n - 32
 		a = b
 	} else {
-		a = uint(uint32(x >> 32))
+		a = uint32(i >> 32)
 	}
 
 	b = a << 16
@@ -189,7 +191,7 @@ func NumberOfTrailingZeros(x uint64) uint {
 		a = b
 	}
 
-	return n - ((a << 1) >> 31)
+	return uint(n - ((a << 1) >> 31))
 }
 
 var tableForNumberOfTrailingZerosForPowerOfTwo = []uint{
@@ -204,10 +206,12 @@ var tableForNumberOfTrailingZerosForPowerOfTwo = []uint{
 }
 
 /*
+NumberOfTrailingZerosForPowerOfTwo returns the number of trailing 0-bits in x.
+x must be a power of 2. Otherwise, the behavior is undefined.
+
 Reference
 
-De Bruijn Sequence
-https://stackoverflow.com/a/32178577/142239
+Solution using De Bruijn Sequence (https://stackoverflow.com/a/32178577/142239)
 */
 func NumberOfTrailingZerosForPowerOfTwo(x uint64) uint {
 	return tableForNumberOfTrailingZerosForPowerOfTwo[uint((x*0x7EDD5E59A4E28C2)>>58)]
