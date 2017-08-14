@@ -208,7 +208,7 @@ func TestSetRightmostZero(t *testing.T) {
 	}
 }
 
-func TestUnsetRightmostOne(t *testing.T) {
+func TestResetRightmostOne(t *testing.T) {
 	cases := []struct {
 		x        uint64
 		expected uint64
@@ -232,17 +232,17 @@ func TestUnsetRightmostOne(t *testing.T) {
 		{16, 0},
 	}
 	for _, c := range cases {
-		got := UnsetRightmostOne(c.x)
+		got := ResetRightmostOne(c.x)
 		if got != c.expected {
 			t.Errorf(
-				"UnsetRightmostOne(0x%016x) = 0x%016x, expected 0x%016x",
+				"ResetRightmostOne(0x%016x) = 0x%016x, expected 0x%016x",
 				c.x, got, c.expected,
 			)
 		}
 	}
 }
 
-func TestNextValueWithSameBitCount(t *testing.T) {
+func TestNextNumberWithSameBitCount(t *testing.T) {
 	cases := []struct {
 		x        uint64
 		expected uint64
@@ -265,10 +265,10 @@ func TestNextValueWithSameBitCount(t *testing.T) {
 		{16, 32}, // 10
 	}
 	for _, c := range cases {
-		got := NextValueWithSameBitCount(c.x)
+		got := NextNumberWithSameBitCount(c.x)
 		if got != c.expected {
 			t.Errorf(
-				"TestNextValueWithSameBitCount(0x%016x) = 0x%016x, expected 0x%016x",
+				"NextNumberWithSameBitCount(0x%016x) = 0x%016x, expected 0x%016x",
 				c.x, got, c.expected,
 			)
 		}
@@ -404,14 +404,14 @@ func TestHello(t *testing.T) {
 	onesLimit := uint64(1) << (cityCount - 1)
 	for selectedCount := uint(1); selectedCount < cityCount; selectedCount++ {
 		for city := uint(0); city < cityCount; city++ {
-			for ones := Ones(selectedCount); ones < onesLimit; ones = NextValueWithSameBitCount(ones) {
+			for ones := Ones(selectedCount); ones < onesLimit; ones = NextNumberWithSameBitCount(ones) {
 				cities := InsertZero(ones, city)
 				t.Logf("selectedCount: %d, city: %d, cities: %08s\n", selectedCount, city, ToString(cities))
 				// Find Minimum:
 				left := cities
 				right := uint64(0)
 				for left != 0 {
-					left = UnsetRightmostOne(left)
+					left = ResetRightmostOne(left)
 					fromCities := left | right
 					viaCity := cities ^ fromCities
 					right = right | viaCity
