@@ -1,16 +1,9 @@
 package main
 
-import "math"
-
-func isSquareMatrix(matrix [][]int32) bool {
-	length := len(matrix)
-	for _, row := range matrix {
-		if len(row) != length {
-			return false
-		}
-	}
-	return true
-}
+import (
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/constant"
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/matrix"
+)
 
 func permutateExceptFirstElement(f func([]int), d int, s []int) {
 	if d == 0 {
@@ -32,23 +25,30 @@ func PermutateExceptFirstElement(f func([]int), s []int) {
 	}
 }
 
-func TravellingSalesmanNaive(matrix [][]int32) (cost int32, path []int) {
-	if !isSquareMatrix(matrix) {
-		return 0, nil
+func PathCost(m matrix.Matrix, path []int) int {
+	cost := 0
+	size := len(path)
+	for i := 1; i < size; i++ {
+		cost += m.Get(path[i-1], path[i])
 	}
-	length := len(matrix)
-	indices := make([]int, length)
+	return cost
+}
+
+func TourCost(m matrix.Matrix, path []int) int {
+	return PathCost(m, path) + m.Get(path[len(path)-1], path[0])
+}
+
+func TravellingSalesmanNaive(m matrix.Matrix) (cost int, path []int) {
+	size, _ := m.Size()
+	indices := make([]int, size)
 	for i := range indices {
 		indices[i] = i
 	}
 
-	minimumCost := int32(math.MaxInt32)
-	minimumPath := make([]int, length)
+	minimumCost := constant.MaxInt
+	minimumPath := make([]int, size)
 	PermutateExceptFirstElement(func(path []int) {
-		cost := int32(0)
-		for i := 1; i < length; i++ {
-			cost += matrix[path[i-1]][path[i]]
-		}
+		cost := PathCost(m, path)
 		if cost < minimumCost {
 			minimumCost = cost
 			copy(minimumPath, path)
