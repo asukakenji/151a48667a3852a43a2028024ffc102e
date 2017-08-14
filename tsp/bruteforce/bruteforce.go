@@ -9,21 +9,22 @@ import (
 func permutateExceptFirstElement(f func([]int), d int, s []int) {
 	if d == 0 {
 		f(s)
-	} else {
-		for i := d; i > 0; i-- {
-			s[i], s[d] = s[d], s[i]
-			permutateExceptFirstElement(f, d-1, s)
-			s[i], s[d] = s[d], s[i]
-		}
+		return
+	}
+	for i := d; i > 0; i-- {
+		s[i], s[d] = s[d], s[i]
+		permutateExceptFirstElement(f, d-1, s)
+		s[i], s[d] = s[d], s[i]
 	}
 }
 
+// len(s) must not be 0.
 func PermutateExceptFirstElement(f func([]int), s []int) {
-	if len(s) == 0 {
-		f(s)
-	} else {
-		permutateExceptFirstElement(f, len(s)-1, s)
-	}
+	// if len(s) == 0 {
+	// 	f(s)
+	// 	return
+	// }
+	permutateExceptFirstElement(f, len(s)-1, s)
 }
 
 func travellingSalesman(m matrix.Matrix, costFunc func(matrix.Matrix, []int) int) (cost int, path []int) {
@@ -51,4 +52,37 @@ func TravellingSalesmanPath(m matrix.Matrix) (cost int, path []int) {
 
 func TravellingSalesmanTour(m matrix.Matrix) (cost int, path []int) {
 	return travellingSalesman(m, tsp.TourCost)
+}
+
+func travellingSalesmanAll(m matrix.Matrix, costFunc func(matrix.Matrix, []int) int) (cost int, path [][]int) {
+	size, _ := m.Size()
+	indices := make([]int, size)
+	for i := range indices {
+		indices[i] = i
+	}
+
+	minimumCost := constant.MaxInt
+	var minimumPaths [][]int
+	PermutateExceptFirstElement(func(path []int) {
+		cost := costFunc(m, path)
+		if cost <= minimumCost {
+			minimumPath := make([]int, size)
+			copy(minimumPath, path)
+			if cost < minimumCost {
+				minimumPaths = [][]int{minimumPath}
+			} else {
+				minimumPaths = append(minimumPaths, minimumPath)
+			}
+			minimumCost = cost
+		}
+	}, indices)
+	return minimumCost, minimumPaths
+}
+
+func TravellingSalesmanAllPaths(m matrix.Matrix) (cost int, paths [][]int) {
+	return travellingSalesmanAll(m, tsp.PathCost)
+}
+
+func TravellingSalesmanAllTours(m matrix.Matrix) (cost int, paths [][]int) {
+	return travellingSalesmanAll(m, tsp.TourCost)
 }
