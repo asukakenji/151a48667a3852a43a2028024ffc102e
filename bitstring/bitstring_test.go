@@ -2,6 +2,88 @@ package bitstring
 
 import "testing"
 
+func TestOnes(t *testing.T) {
+	cases := []struct {
+		count    uint
+		expected uint64
+	}{
+		{0, 0x00},
+		{1, 0x01},
+		{2, 0x03},
+		{3, 0x07},
+		{4, 0x0f},
+		{5, 0x1f},
+		{6, 0x3f},
+		{7, 0x7f},
+		{8, 0xff},
+		{9, 0x01ff},
+		{10, 0x03ff},
+		{11, 0x07ff},
+		{12, 0x0fff},
+		{13, 0x1fff},
+		{14, 0x3fff},
+		{15, 0x7fff},
+		{16, 0xffff},
+		{17, 0x01ffff},
+		{18, 0x03ffff},
+		{19, 0x07ffff},
+		{20, 0x0fffff},
+		{21, 0x1fffff},
+		{22, 0x3fffff},
+		{23, 0x7fffff},
+		{24, 0xffffff},
+		{25, 0x01ffffff},
+		{26, 0x03ffffff},
+		{27, 0x07ffffff},
+		{28, 0x0fffffff},
+		{29, 0x1fffffff},
+		{30, 0x3fffffff},
+		{31, 0x7fffffff},
+		{32, 0xffffffff},
+		{33, 0x01ffffffff},
+		{34, 0x03ffffffff},
+		{35, 0x07ffffffff},
+		{36, 0x0fffffffff},
+		{37, 0x1fffffffff},
+		{38, 0x3fffffffff},
+		{39, 0x7fffffffff},
+		{40, 0xffffffffff},
+		{41, 0x01ffffffffff},
+		{42, 0x03ffffffffff},
+		{43, 0x07ffffffffff},
+		{44, 0x0fffffffffff},
+		{45, 0x1fffffffffff},
+		{46, 0x3fffffffffff},
+		{47, 0x7fffffffffff},
+		{48, 0xffffffffffff},
+		{49, 0x01ffffffffffff},
+		{50, 0x03ffffffffffff},
+		{51, 0x07ffffffffffff},
+		{52, 0x0fffffffffffff},
+		{53, 0x1fffffffffffff},
+		{54, 0x3fffffffffffff},
+		{55, 0x7fffffffffffff},
+		{56, 0xffffffffffffff},
+		{57, 0x01ffffffffffffff},
+		{58, 0x03ffffffffffffff},
+		{59, 0x07ffffffffffffff},
+		{60, 0x0fffffffffffffff},
+		{61, 0x1fffffffffffffff},
+		{62, 0x3fffffffffffffff},
+		{63, 0x7fffffffffffffff},
+		{64, 0xffffffffffffffff},
+	}
+	for _, c := range cases {
+		got := Ones(c.count)
+		if got != c.expected {
+			t.Errorf(
+				"Ones(%d) = 0x%016x, expected 0x%016x",
+				c.count, got, c.expected,
+			)
+		}
+	}
+}
+
 func TestIsBitSetAtIndex(t *testing.T) {
 	cases := []struct {
 		x        uint64
@@ -319,10 +401,11 @@ func TestInsertZero(t *testing.T) {
 
 func TestHello(t *testing.T) {
 	cityCount := uint(4)
+	onesLimit := uint64(1) << (cityCount - 1)
 	for selectedCount := uint(1); selectedCount < cityCount; selectedCount++ {
 		for city := uint(0); city < cityCount; city++ {
-			for x := uint64(1)<<selectedCount - 1; x < (1 << (cityCount - 1)); x = NextValueWithSameBitCount(x) {
-				cities := InsertZero(x, city)
+			for ones := Ones(selectedCount); ones < onesLimit; ones = NextValueWithSameBitCount(ones) {
+				cities := InsertZero(ones, city)
 				t.Logf("selectedCount: %d, city: %d, cities: %08s\n", selectedCount, city, ToString(cities))
 				// Find Minimum:
 				left := cities

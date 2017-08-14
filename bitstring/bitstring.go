@@ -1,5 +1,9 @@
 package bitstring
 
+func Ones(count uint) uint64 {
+	return (1 << count) - 1
+}
+
 // index starts with 0.
 func IsBitSetAtIndex(x uint64, index uint) bool {
 	return x&(1<<index) != 0
