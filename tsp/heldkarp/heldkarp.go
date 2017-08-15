@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/bitstring"
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/matrix"
 )
 
 /*
@@ -141,5 +142,119 @@ func Hello() {
 			fmt.Printf("\n")
 		}
 		fmt.Printf("\n")
+	}
+}
+
+type data struct {
+	viaCity    uint64
+	fromCities uint64
+}
+
+func setDP(dp [][]map[uint64]data, selectedCount, toCity uint, newFromCities, viaCity, fromCities uint64) {
+	fmt.Printf(
+		"    [%d][%d][%d]: To: %d, Via: %d, From: %d(%s)\n",
+		selectedCount, toCity, newFromCities,
+		toCity, viaCity, fromCities, bitstring.ToString(fromCities),
+	)
+	dp[selectedCount][toCity][newFromCities] = data{viaCity, fromCities}
+}
+
+func dumpDP(dp [][]map[uint64]data) {
+	for selectedCount, dp1 := range dp {
+		for toCity, dp2 := range dp1 {
+			for newFromCities, d := range dp2 {
+				fmt.Printf(
+					"dp[%d][%d][%d] = {%d, %d(%s)}\n",
+					selectedCount, toCity, newFromCities,
+					d.viaCity, d.fromCities, bitstring.ToString(d.fromCities),
+				)
+			}
+		}
+	}
+	fmt.Println()
+}
+
+func TravellingSalesmanTour(m matrix.Matrix) {
+	fmt.Println()
+	cityCount := uint(4)
+	var selectedCount uint
+	var toCity uint
+	var prevToCity uint
+	var prevNewFromCities uint64
+
+	// Allocation
+	dp := make([][]map[uint64]data, cityCount)
+	for selectedCount = 0; selectedCount < cityCount; selectedCount++ {
+		dp[selectedCount] = make([]map[uint64]data, cityCount)
+		for toCity = 0; toCity < cityCount; toCity++ {
+			dp[selectedCount][toCity] = map[uint64]data{}
+		}
+	}
+
+	// Initialization: selectedCount == 0
+	selectedCount = 0
+	for toCity = 1; toCity < cityCount; toCity++ {
+		// viaCity := uint64(prevToCity)
+		// fromCities := uint64(prevNewFromCities)
+		// newFromCities := fromCities | (1 << viaCity)
+		// setDP(dp, selectedCount, toCity, newFromCities, viaCity, fromCities)
+		setDP(
+			dp,
+			selectedCount,
+			toCity,
+			uint64(prevNewFromCities)|(1<<uint64(prevToCity)),
+			uint64(prevToCity),
+			uint64(prevNewFromCities),
+		)
+	}
+
+	// Process: 0 < selectedCount < cityCount - 1
+	for selectedCount = 1; selectedCount < cityCount-1; selectedCount++ {
+		dp1p := dp[selectedCount-1]
+		for prevToCity = 1; prevToCity < cityCount; prevToCity++ {
+			dp2p := dp1p[prevToCity]
+			for prevNewFromCities = range dp2p {
+				fmt.Printf("*** [%d][%d][%d]:\n", selectedCount-1, prevToCity, prevNewFromCities)
+				for toCity = 1; toCity < cityCount; toCity++ {
+					if (toCity != prevToCity) && ((1<<toCity)&prevNewFromCities == 0) {
+						// viaCity := uint64(prevToCity)
+						// fromCities := uint64(prevNewFromCities)
+						// newFromCities := fromCities | (1 << viaCity)
+						// setDP(dp, selectedCount, toCity, newFromCities, viaCity, fromCities)
+						setDP(
+							dp,
+							selectedCount,
+							toCity,
+							uint64(prevNewFromCities)|(1<<uint64(prevToCity)),
+							uint64(prevToCity),
+							uint64(prevNewFromCities),
+						)
+					}
+				}
+			}
+		}
+	}
+	fmt.Println()
+
+	// Finalization: selectedCount == cityCount - 1
+	selectedCount = cityCount - 1
+	toCity = 0
+	dp1p := dp[selectedCount-1]
+	for prevToCity = 1; prevToCity < cityCount; prevToCity++ {
+		dp2p := dp1p[prevToCity]
+		for prevNewFromCities := range dp2p {
+			// viaCity := uint64(prevToCity)
+			// fromCities := uint64(prevNewFromCities)
+			// newFromCities := fromCities | (1 << viaCity)
+			// setDP(dp, selectedCount, toCity, newFromCities, viaCity, fromCities)
+			setDP(
+				dp,
+				selectedCount,
+				toCity,
+				uint64(prevNewFromCities)|(1<<uint64(prevToCity)),
+				uint64(prevToCity),
+				uint64(prevNewFromCities),
+			)
+		}
 	}
 }
