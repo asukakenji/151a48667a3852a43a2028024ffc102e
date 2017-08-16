@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/bitstring"
-	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/constant"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/matrix"
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/tsp"
 )
 
 /*
@@ -126,19 +126,14 @@ type data struct {
 	cost       int
 }
 
-func setDP(dp [][]map[uint64]data, selectedCount int, toCity int, newFromCities uint64, viaCity int, fromCities uint64, cost int) {
-	// If cost is Infinity, keep the current value.
-	if cost == constant.Infinity {
-		return
-	}
-	// Overwrite the value in one of these situations:
-	// 1. The entry not yet exists, and there is no current cost;
-	// 2. The current cost is Infinity;
-	// 3. The new cost is lower than the current cost.
-	d, ok := dp[selectedCount][toCity][newFromCities]
-	if !ok || d.cost == constant.Infinity || cost < d.cost {
+func setDP(
+	dp [][]map[uint64]data,
+	selectedCount int, toCity int,
+	viaCity int, fromCities uint64, cost int,
+) {
+	newFromCities := fromCities | (1 << uint64(viaCity))
+	if d, ok := dp[selectedCount][toCity][newFromCities]; !ok || tsp.IsLessThan(cost, d.cost) {
 		dp[selectedCount][toCity][newFromCities] = data{viaCity, fromCities, cost}
-		return
 	}
 }
 
@@ -177,15 +172,10 @@ func TravellingSalesmanTour(_m matrix.Matrix) (cost int, path []int) {
 		prevNewFromCities := uint64(0)
 		prevToCity := 0
 		for toCity := 1; toCity < cityCount; toCity++ {
-			// viaCity := uint64(prevToCity)
-			// fromCities := uint64(prevNewFromCities)
-			// newFromCities := fromCities | (1 << viaCity)
-			// setDP(dp, selectedCount, toCity, newFromCities, viaCity, fromCities, m[0][toCity])
 			setDP(
 				dp,
 				selectedCount,
 				toCity,
-				(prevNewFromCities | (1 << uint64(prevToCity))), // newFromCities
 				prevToCity,        // viaCity
 				prevNewFromCities, // fromCities
 				m[0][toCity],
@@ -202,16 +192,12 @@ func TravellingSalesmanTour(_m matrix.Matrix) (cost int, path []int) {
 			var d data
 			for prevNewFromCities, d = range dp2p {
 				for toCity := 1; toCity < cityCount; toCity++ {
-					if (toCity != prevToCity) && ((1<<uint(toCity))&prevNewFromCities == 0) {
-						_cost := m[prevToCity][toCity]
-						if _cost != constant.Infinity {
-							_cost += d.cost
-						}
+					if (toCity != prevToCity) && ((1<<uint64(toCity))&prevNewFromCities == 0) {
+						_cost := tsp.AddCosts(m[prevToCity][toCity], d.cost)
 						setDP(
 							dp,
 							selectedCount,
 							toCity,
-							(prevNewFromCities | (1 << uint64(prevToCity))), // newFromCities
 							prevToCity,        // viaCity
 							prevNewFromCities, // fromCities
 							_cost,
@@ -231,15 +217,11 @@ func TravellingSalesmanTour(_m matrix.Matrix) (cost int, path []int) {
 			dp2p := dp1p[prevToCity]
 			prevNewFromCities := allCities &^ (1 << uint64(prevToCity))
 			d := dp2p[prevNewFromCities]
-			_cost := m[prevToCity][toCity]
-			if _cost != constant.Infinity {
-				_cost += d.cost
-			}
+			_cost := tsp.AddCosts(m[prevToCity][toCity], d.cost)
 			setDP(
 				dp,
 				selectedCount,
 				toCity,
-				(prevNewFromCities | (1 << uint64(prevToCity))), // newFromCities
 				prevToCity,        // viaCity
 				prevNewFromCities, // fromCities
 				_cost,

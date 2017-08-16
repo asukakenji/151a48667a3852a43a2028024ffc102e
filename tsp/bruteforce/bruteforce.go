@@ -38,9 +38,9 @@ func travellingSalesman(m matrix.Matrix, costFunc func(matrix.Matrix, []int) int
 	minimumPath := make([]int, size)
 	PermutateExceptFirstElement(func(path []int) {
 		cost := costFunc(m, path)
-		if cost < minimumCost {
-			minimumCost = cost
+		if tsp.IsLessThan(cost, minimumCost) {
 			copy(minimumPath, path)
+			minimumCost = cost
 		}
 	}, indices)
 	return minimumCost, minimumPath
@@ -65,10 +65,10 @@ func travellingSalesmanAll(m matrix.Matrix, costFunc func(matrix.Matrix, []int) 
 	var minimumPaths [][]int
 	PermutateExceptFirstElement(func(path []int) {
 		cost := costFunc(m, path)
-		if cost <= minimumCost {
+		if tsp.IsLessThanEqualTo(cost, minimumCost) {
 			minimumPath := make([]int, size)
 			copy(minimumPath, path)
-			if cost < minimumCost {
+			if tsp.IsLessThan(cost, minimumCost) {
 				minimumPaths = [][]int{minimumPath}
 			} else {
 				minimumPaths = append(minimumPaths, minimumPath)
