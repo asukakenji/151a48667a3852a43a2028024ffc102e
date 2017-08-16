@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/bitstring"
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/constant"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/matrix"
 )
 
@@ -119,44 +120,26 @@ Tour: A <- C <- E <- B <- D <- A
                                           +----+
 */
 
-func Hello() {
-	cityCount := uint(4)
-	onesLimit := uint64(1) << (cityCount - 1)
-	for selectedCount := uint(1); selectedCount < cityCount; selectedCount++ {
-		for city := uint(0); city < cityCount; city++ {
-			for ones := bitstring.Ones(selectedCount); ones < onesLimit; ones = bitstring.NextNumberWithSameBitCount(ones) {
-				cities := bitstring.InsertZero(ones, city)
-				fmt.Printf("selectedCount: %d, city: %d, cities: %08s\n", selectedCount, city, bitstring.ToString(cities))
-				// Find Minimum:
-				left := cities
-				right := uint64(0)
-				for left != 0 {
-					left = bitstring.ResetRightmostOne(left)
-					fromCities := left | right
-					viaCity := cities ^ fromCities
-					right = right | viaCity
-					//fmt.Printf("    %08s, %08s, %d, %08s\n", ToString(left), ToString(fromCities), NumberOfTrailingZerosForPowerOfTwo(viaCity), ToString(right))
-					fmt.Printf("    From Cities: 0x%016x, Via City: %d\n", fromCities, bitstring.NumberOfTrailingZerosForPowerOfTwo(viaCity))
-				}
-			}
-			fmt.Printf("\n")
-		}
-		fmt.Printf("\n")
-	}
-}
-
 type data struct {
-	viaCity    uint64
+	viaCity    int
 	fromCities uint64
+	cost       int
 }
 
-func setDP(dp [][]map[uint64]data, selectedCount, toCity uint, newFromCities, viaCity, fromCities uint64) {
-	fmt.Printf(
-		"    [%d][%d][%d]: To: %d, Via: %d, From: %d(%s)\n",
-		selectedCount, toCity, newFromCities,
-		toCity, viaCity, fromCities, bitstring.ToString(fromCities),
-	)
-	dp[selectedCount][toCity][newFromCities] = data{viaCity, fromCities}
+func setDP(dp [][]map[uint64]data, selectedCount int, toCity int, newFromCities uint64, viaCity int, fromCities uint64, cost int) {
+	// If cost is Infinity, keep the current value.
+	if cost == constant.Infinity {
+		return
+	}
+	// Overwrite the value in one of these situations:
+	// 1. The entry not yet exists, and there is no current cost;
+	// 2. The current cost is Infinity;
+	// 3. The new cost is lower than the current cost.
+	d, ok := dp[selectedCount][toCity][newFromCities]
+	if !ok || d.cost == constant.Infinity || cost < d.cost {
+		dp[selectedCount][toCity][newFromCities] = data{viaCity, fromCities, cost}
+		return
+	}
 }
 
 func dumpDP(dp [][]map[uint64]data) {
@@ -164,9 +147,9 @@ func dumpDP(dp [][]map[uint64]data) {
 		for toCity, dp2 := range dp1 {
 			for newFromCities, d := range dp2 {
 				fmt.Printf(
-					"dp[%d][%d][%d] = {%d, %d(%s)}\n",
+					"dp[%d][%d][%d] = {%d, %d(%s), %d}\n",
 					selectedCount, toCity, newFromCities,
-					d.viaCity, d.fromCities, bitstring.ToString(d.fromCities),
+					d.viaCity, d.fromCities, bitstring.ToString(d.fromCities), d.cost,
 				)
 			}
 		}
@@ -174,87 +157,108 @@ func dumpDP(dp [][]map[uint64]data) {
 	fmt.Println()
 }
 
-func TravellingSalesmanTour(m matrix.Matrix) {
-	fmt.Println()
-	cityCount := uint(4)
-	var selectedCount uint
-	var toCity uint
-	var prevToCity uint
-	var prevNewFromCities uint64
+func TravellingSalesmanTour(_m matrix.Matrix) (cost int, path []int) {
+	m := ([][]int)(_m.(matrix.SquareMatrix))
+	cityCount := len(m)
+	allCities := bitstring.Ones(uint(cityCount))
 
 	// Allocation
 	dp := make([][]map[uint64]data, cityCount)
-	for selectedCount = 0; selectedCount < cityCount; selectedCount++ {
+	for selectedCount := 0; selectedCount < cityCount; selectedCount++ {
 		dp[selectedCount] = make([]map[uint64]data, cityCount)
-		for toCity = 0; toCity < cityCount; toCity++ {
+		for toCity := 0; toCity < cityCount; toCity++ {
 			dp[selectedCount][toCity] = map[uint64]data{}
 		}
 	}
 
 	// Initialization: selectedCount == 0
-	selectedCount = 0
-	for toCity = 1; toCity < cityCount; toCity++ {
-		// viaCity := uint64(prevToCity)
-		// fromCities := uint64(prevNewFromCities)
-		// newFromCities := fromCities | (1 << viaCity)
-		// setDP(dp, selectedCount, toCity, newFromCities, viaCity, fromCities)
-		setDP(
-			dp,
-			selectedCount,
-			toCity,
-			uint64(prevNewFromCities)|(1<<uint64(prevToCity)),
-			uint64(prevToCity),
-			uint64(prevNewFromCities),
-		)
+	{
+		selectedCount := 0
+		prevNewFromCities := uint64(0)
+		prevToCity := 0
+		for toCity := 1; toCity < cityCount; toCity++ {
+			// viaCity := uint64(prevToCity)
+			// fromCities := uint64(prevNewFromCities)
+			// newFromCities := fromCities | (1 << viaCity)
+			// setDP(dp, selectedCount, toCity, newFromCities, viaCity, fromCities, m[0][toCity])
+			setDP(
+				dp,
+				selectedCount,
+				toCity,
+				(prevNewFromCities | (1 << uint64(prevToCity))), // newFromCities
+				prevToCity,        // viaCity
+				prevNewFromCities, // fromCities
+				m[0][toCity],
+			)
+		}
 	}
 
 	// Process: 0 < selectedCount < cityCount - 1
-	for selectedCount = 1; selectedCount < cityCount-1; selectedCount++ {
+	for selectedCount := 1; selectedCount < cityCount-1; selectedCount++ {
 		dp1p := dp[selectedCount-1]
-		for prevToCity = 1; prevToCity < cityCount; prevToCity++ {
+		for prevToCity := 1; prevToCity < cityCount; prevToCity++ {
 			dp2p := dp1p[prevToCity]
-			for prevNewFromCities = range dp2p {
-				fmt.Printf("*** [%d][%d][%d]:\n", selectedCount-1, prevToCity, prevNewFromCities)
-				for toCity = 1; toCity < cityCount; toCity++ {
-					if (toCity != prevToCity) && ((1<<toCity)&prevNewFromCities == 0) {
-						// viaCity := uint64(prevToCity)
-						// fromCities := uint64(prevNewFromCities)
-						// newFromCities := fromCities | (1 << viaCity)
-						// setDP(dp, selectedCount, toCity, newFromCities, viaCity, fromCities)
+			var prevNewFromCities uint64
+			var d data
+			for prevNewFromCities, d = range dp2p {
+				for toCity := 1; toCity < cityCount; toCity++ {
+					if (toCity != prevToCity) && ((1<<uint(toCity))&prevNewFromCities == 0) {
+						_cost := m[prevToCity][toCity]
+						if _cost != constant.Infinity {
+							_cost += d.cost
+						}
 						setDP(
 							dp,
 							selectedCount,
 							toCity,
-							uint64(prevNewFromCities)|(1<<uint64(prevToCity)),
-							uint64(prevToCity),
-							uint64(prevNewFromCities),
+							(prevNewFromCities | (1 << uint64(prevToCity))), // newFromCities
+							prevToCity,        // viaCity
+							prevNewFromCities, // fromCities
+							_cost,
 						)
 					}
 				}
 			}
 		}
 	}
-	fmt.Println()
 
 	// Finalization: selectedCount == cityCount - 1
-	selectedCount = cityCount - 1
-	toCity = 0
-	dp1p := dp[selectedCount-1]
-	for prevToCity = 1; prevToCity < cityCount; prevToCity++ {
-		dp2p := dp1p[prevToCity]
-		for prevNewFromCities := range dp2p {
-			// viaCity := uint64(prevToCity)
-			// fromCities := uint64(prevNewFromCities)
-			// newFromCities := fromCities | (1 << viaCity)
-			// setDP(dp, selectedCount, toCity, newFromCities, viaCity, fromCities)
+	{
+		selectedCount := cityCount - 1
+		toCity := 0
+		dp1p := dp[selectedCount-1]
+		for prevToCity := 1; prevToCity < cityCount; prevToCity++ {
+			dp2p := dp1p[prevToCity]
+			prevNewFromCities := allCities &^ (1 << uint64(prevToCity))
+			d := dp2p[prevNewFromCities]
+			_cost := m[prevToCity][toCity]
+			if _cost != constant.Infinity {
+				_cost += d.cost
+			}
 			setDP(
 				dp,
 				selectedCount,
 				toCity,
-				uint64(prevNewFromCities)|(1<<uint64(prevToCity)),
-				uint64(prevToCity),
-				uint64(prevNewFromCities),
+				(prevNewFromCities | (1 << uint64(prevToCity))), // newFromCities
+				prevToCity,        // viaCity
+				prevNewFromCities, // fromCities
+				_cost,
 			)
 		}
 	}
+
+	// Backtracking
+	toCity := 0
+	fromCities := allCities
+	d := dp[cityCount-1][toCity][fromCities]
+	cost = d.cost
+	path = make([]int, cityCount)
+	for selectedCount := cityCount - 1; selectedCount > 0; selectedCount-- {
+		d = dp[selectedCount][toCity][fromCities]
+		path[selectedCount] = d.viaCity
+		toCity = d.viaCity
+		fromCities = d.fromCities
+	}
+
+	return cost, path
 }
