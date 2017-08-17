@@ -157,7 +157,7 @@ Examples
 
 Here is an example of a "success" DrivingRoute:
 
-	var dr0 DrivingRoute = DrivingRoute{
+	var dr0 DrivingRoute = &DrivingRoute{
 		Status: "success",
 		Path: Locations{
 			{"22.372081", "114.107877"}, // "11 Hoi Shing Rd, Tsuen Wan, Hong Kong"
@@ -170,13 +170,13 @@ Here is an example of a "success" DrivingRoute:
 
 Here is an example of a "in progress" DrivingRoute:
 
-	var dr1 DrivingRoute = DrivingRoute{
+	var dr1 DrivingRoute = &DrivingRoute{
 		Status: "in progress",
 	}
 
 Here is an example of a "failure" DrivingRoute:
 
-	var dr2 DrivingRoute = DrivingRoute{
+	var dr2 DrivingRoute = &DrivingRoute{
 		Status: "failure",
 		Error:  "internal server error (539cd7a5469b42ec1a53306df7fb2495)",
 	}
@@ -184,7 +184,7 @@ Here is an example of a "failure" DrivingRoute:
 type DrivingRoute struct {
 	Status        string    `json:"status"`
 	Path          Locations `json:"path,omitempty"`
-	TotalDistance uint      `json:"total_distance,omitempty"`
-	TotalTime     uint      `json:"total_time,omitempty"`
+	TotalDistance int       `json:"total_distance,omitempty"`
+	TotalTime     int       `json:"total_time,omitempty"`
 	Error         string    `json:"error,omitempty"`
 }
