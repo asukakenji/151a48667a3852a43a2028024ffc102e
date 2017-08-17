@@ -1,8 +1,6 @@
 package heldkarp
 
 import (
-	"fmt"
-
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/bitstring"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/matrix"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/tsp"
@@ -128,28 +126,16 @@ type data struct {
 
 func setDP(
 	dp [][]map[uint64]data,
-	selectedCount int, toCity int,
-	viaCity int, fromCities uint64, cost int,
+	selectedCount int,
+	toCity int,
+	viaCity int,
+	fromCities uint64,
+	cost int,
 ) {
 	newFromCities := fromCities | (1 << uint64(viaCity))
 	if d, ok := dp[selectedCount][toCity][newFromCities]; !ok || tsp.IsLessThan(cost, d.cost) {
 		dp[selectedCount][toCity][newFromCities] = data{viaCity, fromCities, cost}
 	}
-}
-
-func dumpDP(dp [][]map[uint64]data) {
-	for selectedCount, dp1 := range dp {
-		for toCity, dp2 := range dp1 {
-			for newFromCities, d := range dp2 {
-				fmt.Printf(
-					"dp[%d][%d][%d] = {%d, %d(%s), %d}\n",
-					selectedCount, toCity, newFromCities,
-					d.viaCity, d.fromCities, bitstring.ToString(d.fromCities), d.cost,
-				)
-			}
-		}
-	}
-	fmt.Println()
 }
 
 func TravellingSalesmanTour(_m matrix.Matrix) (cost int, path []int) {
