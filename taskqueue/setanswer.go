@@ -3,6 +3,7 @@ package taskqueue
 import (
 	"bytes"
 	"encoding/json"
+	"math"
 	"time"
 
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
@@ -10,7 +11,7 @@ import (
 	"github.com/kr/beanstalk"
 )
 
-func SetAnswer(conn *beanstalk.Conn, token string, dr *common.DrivingRoute, pri uint32, delay, ttr time.Duration) (id uint64, err error) {
+func SetAnswer(conn *beanstalk.Conn, token string, dr *common.DrivingRoute) (id uint64, err error) {
 	buf := new(bytes.Buffer)
 	err = json.NewEncoder(buf).Encode(Answer{
 		Timestamp:    time.Now().Unix(),
@@ -26,10 +27,10 @@ func SetAnswer(conn *beanstalk.Conn, token string, dr *common.DrivingRoute, pri 
 		Name: token,
 	}
 	id, err = tube.Put(
-		buf.Bytes(),               // body
-		uint32(time.Now().Unix()), // pri
-		time.Duration(0),          // delay: immediately ready
-		time.Duration(0),          // ttr: zero as answers are never reserved
+		buf.Bytes(),                              // body
+		math.MaxUint32-uint32(time.Now().Unix()), // pri
+		time.Duration(0),                         // delay: immediately ready
+		time.Duration(0),                         // ttr: zero as answers are never reserved
 	)
 	if err != nil {
 		if cerr, ok := err.(beanstalk.ConnError); !ok {

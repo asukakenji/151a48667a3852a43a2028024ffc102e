@@ -46,15 +46,13 @@
 //     -  Not Matched:
 //        - TODO: Write this!
 //   - Google Maps
-//     - Use goroutine to parallel the queries
-//     - Or see whether the API allows many questions in one trip
+//     - Get Distance Matrix
 //   - Travelling Salesman
 //   - PUT
 //     - body: "success" + path + other results
 //     - pri: max uint32 - (current) timestamp
 //     - delay: 0 seconds
 //     - ttr: 0 seconds
-//   - USE "default"
 //   - DELETE
 //     - id: id of the job
 
