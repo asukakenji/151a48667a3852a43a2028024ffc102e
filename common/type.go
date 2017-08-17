@@ -144,12 +144,14 @@ It is either "success", "in progress", or "failure".
 The field Path is the path of the shortest driving route.
 
 The field TotalDistance is the total driving distance (in meters) of the path above.
-Since the circumference of the Earth is around 40,075km = 40,075,000m,
-uint should be sufficient no matter it is 32-bit or 64-bit.
+Since the circumference of the Earth is around 40,000km = 40,000,000m at the Equator,
+and a signed 32-bit integer can represent 2,147,483,647m,
+more than 50,000 times the circumference of the Earth,
+int should be sufficient no matter it is 32-bit or 64-bit.
 
 The field TotalTime is the estimated total time (in seconds) needed for driving along the path above.
-Since an unsigned 32-bit integer can represent a duration of more than 136 years,
-uint should be sufficient no matter it is 32-bit or 64-bit.
+Since a signed 32-bit integer can represent a duration of more than 68 years,
+int should be sufficient no matter it is 32-bit or 64-bit.
 
 The field Error is the error occurred during the process.
 
