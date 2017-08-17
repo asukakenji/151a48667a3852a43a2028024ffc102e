@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"math/rand"
 	"net/http"
 
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
@@ -29,7 +28,7 @@ func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
 		status = http.StatusInternalServerError
 		err = common.WrapError(nil, "539cd7a5469b42ec1a53306df7fb2495")
 		goto HandleError
-	} else if !common.IsToken(token) {
+	} else if !IsToken(token) {
 		status = http.StatusBadRequest
 		err = common.NewInvalidTokenError(token)
 		goto HandleError
@@ -64,29 +63,4 @@ HandleError:
 		Error string `json:"error"`
 	}{Error: err.Error()})
 	return
-}
-
-func mock(w http.ResponseWriter) {
-	r := rand.Float64()
-	if r < 1.0/3.0 {
-		json.NewEncoder(w).Encode(common.DrivingRoute{
-			Status: "success",
-			Path: [][]string{
-				{"22.372081", "114.107877"},
-				{"22.284419", "114.159510"},
-				{"22.326442", "114.167811"},
-			},
-			TotalDistance: 123,
-			TotalTime:     456,
-		})
-	} else if r < 2.0/3.0 {
-		json.NewEncoder(w).Encode(common.DrivingRoute{
-			Status: "in progress",
-		})
-	} else {
-		json.NewEncoder(w).Encode(common.DrivingRoute{
-			Status: "failure",
-			Error:  "unknown error",
-		})
-	}
 }

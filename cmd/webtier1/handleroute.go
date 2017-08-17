@@ -30,7 +30,7 @@ func SubmitStartPointAndDropOffLocations(w http.ResponseWriter, req *http.Reques
 		goto HandleError
 	}
 
-	token = common.NewToken()
+	token = NewToken()
 
 	err = taskqueue.WithConnection(addr, func(conn *beanstalk.Conn) error {
 		_id, _err := taskqueue.AddQuestion(conn, token, locs, timeLimit)
