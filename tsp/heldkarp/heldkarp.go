@@ -138,9 +138,9 @@ func setDP(
 	}
 }
 
-func TravellingSalesmanTour(_m matrix.Matrix) (cost int, path []int) {
-	m := ([][]int)(_m.(matrix.SquareMatrix))
-	cityCount := len(m)
+func travellingSalesman(m matrix.Matrix, costFunc func(int, [][]int, data) int) (cost int, path []int) {
+	_m := ([][]int)(m.(matrix.SquareMatrix))
+	cityCount := len(_m)
 	allCities := bitstring.Ones(uint(cityCount))
 
 	// Allocation
@@ -164,7 +164,7 @@ func TravellingSalesmanTour(_m matrix.Matrix) (cost int, path []int) {
 				toCity,
 				prevToCity,        // viaCity
 				prevNewFromCities, // fromCities
-				m[0][toCity],
+				_m[0][toCity],
 			)
 		}
 	}
@@ -179,7 +179,7 @@ func TravellingSalesmanTour(_m matrix.Matrix) (cost int, path []int) {
 			for prevNewFromCities, d = range dp2p {
 				for toCity := 1; toCity < cityCount; toCity++ {
 					if (toCity != prevToCity) && ((1<<uint64(toCity))&prevNewFromCities == 0) {
-						_cost := tsp.AddCosts(m[prevToCity][toCity], d.cost)
+						_cost := tsp.AddCosts(_m[prevToCity][toCity], d.cost)
 						setDP(
 							dp,
 							selectedCount,
@@ -196,18 +196,15 @@ func TravellingSalesmanTour(_m matrix.Matrix) (cost int, path []int) {
 
 	// Finalization: selectedCount == cityCount - 1
 	{
-		selectedCount := cityCount - 1
-		toCity := 0
-		dp1p := dp[selectedCount-1]
+		dp1p := dp[cityCount-2]
 		for prevToCity := 1; prevToCity < cityCount; prevToCity++ {
-			dp2p := dp1p[prevToCity]
 			prevNewFromCities := allCities &^ (1 << uint64(prevToCity))
-			d := dp2p[prevNewFromCities]
-			_cost := tsp.AddCosts(m[prevToCity][toCity], d.cost)
+			d := dp1p[prevToCity][prevNewFromCities]
+			_cost := costFunc(prevToCity, _m, d) // NOTE: Here is the difference between Path and Tour
 			setDP(
 				dp,
-				selectedCount,
-				toCity,
+				cityCount-1,       // selectedCount
+				0,                 // toCity
 				prevToCity,        // viaCity
 				prevNewFromCities, // fromCities
 				_cost,
@@ -229,4 +226,16 @@ func TravellingSalesmanTour(_m matrix.Matrix) (cost int, path []int) {
 	}
 
 	return cost, path
+}
+
+func TravellingSalesmanPath(m matrix.Matrix) (cost int, path []int) {
+	return travellingSalesman(m, func(prevToCity int, _m [][]int, d data) int {
+		return d.cost
+	})
+}
+
+func TravellingSalesmanTour(m matrix.Matrix) (cost int, path []int) {
+	return travellingSalesman(m, func(prevToCity int, _m [][]int, d data) int {
+		return tsp.AddCosts(_m[prevToCity][0], d.cost)
+	})
 }

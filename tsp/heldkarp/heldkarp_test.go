@@ -103,3 +103,49 @@ func TestTravellingSalesmanTour(t *testing.T) {
 		}
 	}
 }
+
+func TestTravellingSalesmanPath(t *testing.T) {
+	cases := []struct {
+		m             [][]int
+		expectedCost  int
+		expectedPaths [][]int
+	}{
+		{
+			matrices[0], 12, [][]int{
+				{0, 1, 3, 2}, // A -> B -> D -> C
+			},
+		},
+		{
+			matrices[1], 29, [][]int{
+				{0, 1, 3, 2}, // A -> B -> D -> C
+			},
+		},
+		{
+			matrices[2], 24, [][]int{
+				{0, 4, 2, 1, 3}, // A -> E -> C -> B -> D
+				{0, 2, 4, 1, 3}, // A -> C -> E -> B -> D
+				//{0, 2, 3, 1, 4}, // A -> C -> D -> B -> E (cost = 26, symmetric in tour)
+				{0, 4, 1, 3, 2}, // A -> E -> B -> D -> C
+			},
+		},
+		{
+			matrices[3], 25, [][]int{
+				{0, 3, 1, 4, 2}, // A -> D -> B -> E -> C
+				{0, 3, 4, 2, 1}, // A -> D -> E -> C -> B
+			},
+		},
+		{
+			matrices[4], 26, [][]int{
+				//{0, 2, 3, 1, 4}, // A -> C -> D -> B -> E (cost = 27, symmetric in tour)
+				{0, 4, 1, 3, 2}, // A -> E -> B -> D -> C
+			},
+		},
+	}
+	for i, c := range cases {
+		m := matrix.NewSquareMatrix(c.m)
+		gotCost, gotPath := TravellingSalesmanPath(m)
+		if gotCost != c.expectedCost || !DeepEqualOneOf(gotPath, c.expectedPaths) {
+			t.Errorf("TestTravellingSalesmanPath Case #%d: Got: (%d, %v), Expected: (%d, %v)", i, gotCost, gotPath, c.expectedCost, c.expectedPaths)
+		}
+	}
+}

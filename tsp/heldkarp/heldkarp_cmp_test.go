@@ -57,8 +57,33 @@ func GenerateSquareMatrix(size int) matrix.Matrix {
 	return matrix.NewSquareMatrix(m)
 }
 
+func TestTravellingSalesmanPath_Compare(t *testing.T) {
+	for i := 0; i < 256; i++ {
+		size := 2 + rng.Intn(9)
+		m := GenerateSquareMatrix(size)
+		expectedCost, expectedPath := bruteforce.TravellingSalesmanPath(m)
+		gotCost, gotPath := TravellingSalesmanPath(m)
+		if gotCost != expectedCost {
+			t.Errorf(
+				"TravellingSalesmanPath(%v) = (%d, %v), expected (%d, %v)",
+				m, gotCost, gotPath, expectedCost, expectedPath,
+			)
+		}
+		if !reflect.DeepEqual(gotPath, expectedPath) {
+			cost1 := tsp.PathCost(m, gotPath)
+			cost2 := tsp.PathCost(m, expectedPath)
+			if cost1 != cost2 {
+				t.Errorf(
+					"TravellingSalesmanPath(%v) = (%d, %v), expected (%d, %v)",
+					m, gotCost, gotPath, expectedCost, expectedPath,
+				)
+			}
+		}
+	}
+}
+
 func TestTravellingSalesmanTour_Compare(t *testing.T) {
-	for i := 0; i < 1024; i++ {
+	for i := 0; i < 256; i++ {
 		size := 2 + rng.Intn(9)
 		m := GenerateSquareMatrix(size)
 		expectedCost, expectedPath := bruteforce.TravellingSalesmanTour(m)
