@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/cmd/webtier1/lib"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/taskqueue"
 	"github.com/golang/glog"
@@ -28,7 +29,7 @@ func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
 		status = http.StatusInternalServerError
 		err = common.WrapError(nil, "539cd7a5469b42ec1a53306df7fb2495")
 		goto HandleError
-	} else if !IsToken(token) {
+	} else if !lib.IsToken(token) {
 		status = http.StatusBadRequest
 		err = common.NewInvalidTokenError(token)
 		goto HandleError

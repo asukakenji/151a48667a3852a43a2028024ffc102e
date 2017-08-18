@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/cmd/webtier1/lib"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/taskqueue"
 	"github.com/golang/glog"
@@ -30,7 +31,7 @@ func SubmitStartPointAndDropOffLocations(w http.ResponseWriter, req *http.Reques
 		goto HandleError
 	}
 
-	token = NewToken()
+	token = lib.NewToken()
 
 	err = taskqueue.WithConnection(addr, func(conn *beanstalk.Conn) error {
 		_id, _err := taskqueue.AddQuestion(conn, token, locs, timeLimit)
