@@ -73,7 +73,7 @@ func main1() {
 			glog.Infof("aidp: %d", aidp)
 
 			if a != nil {
-				if a.QuestionId != qid {
+				if a.QuestionID != qid {
 					// TODO: Clear answer now
 				}
 
@@ -92,13 +92,19 @@ func main1() {
 			}
 			glog.Infof("aid (in progress): %d", aidip)
 
-			dmr, _err := GetDistanceMatrix(apiKey, q.Locations)
+			glocs := LocationsToGoogleMapsLocations(q.Locations)
+
+			dmr, _err := GetDistanceMatrix(apiKey, glocs)
 			if _err != nil {
 				glog.Errorf("Cannot get distance matrix")
 				return _err
 			}
 
-			m := GoogleMapsMatrixToMatrix(dmr)
+			m, _err := GoogleMapsMatrixToMatrix(dmr)
+			if _err != nil {
+				glog.Errorf("Cannot convert Google Maps Matrix to Matrix")
+				return _err
+			}
 
 			var cost int
 			var path []int
@@ -154,10 +160,7 @@ func main1() {
 	}
 }
 
-func GetDistanceMatrix(apiKey string, locs common.Locations) (*maps.DistanceMatrixResponse, error) {
-	origins := LocationsToGoogleMapsLocations(locs)
-	destinations := origins
-
+func GetDistanceMatrix(apiKey string, glocs []string) (*maps.DistanceMatrixResponse, error) {
 	c, err := maps.NewClient(maps.WithAPIKey(apiKey))
 	if err != nil {
 		return nil, err
@@ -165,8 +168,8 @@ func GetDistanceMatrix(apiKey string, locs common.Locations) (*maps.DistanceMatr
 
 	ctx := context.Background()
 	r := &maps.DistanceMatrixRequest{
-		Origins:                  origins,
-		Destinations:             destinations,
+		Origins:                  glocs,
+		Destinations:             glocs,
 		Mode:                     maps.TravelModeDriving,
 		Language:                 "",
 		Avoid:                    maps.Avoid(""),
@@ -185,40 +188,17 @@ func GetDistanceMatrix(apiKey string, locs common.Locations) (*maps.DistanceMatr
 	return resp, nil
 }
 
-func main() {
-	c, err := maps.NewClient(maps.WithAPIKey(os.Args[1]))
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("%#v\n\n", c)
-	ctx := context.Background()
-	r := &maps.DistanceMatrixRequest{
-		Origins:                  []string{"22.372081,114.107877", "22.284419,114.159510", "22.326442,114.167811"},
-		Destinations:             []string{"22.372081,114.107877", "22.284419,114.159510", "22.326442,114.167811"},
-		Mode:                     maps.TravelModeDriving,
-		Language:                 "",
-		Avoid:                    maps.Avoid(""),
-		Units:                    maps.UnitsMetric,
-		DepartureTime:            "now",
-		ArrivalTime:              "",
-		TrafficModel:             maps.TrafficModel(""),
-		TransitMode:              []maps.TransitMode(nil),
-		TransitRoutingPreference: maps.TransitRoutingPreference(""),
-	}
-	resp, err := c.DistanceMatrix(ctx, r)
-	if err != nil {
-		panic(err)
-	}
+func DumpDMR(dmr *maps.DistanceMatrixResponse) {
 	fmt.Printf("Origin Addresses:\n")
-	for _, addr := range resp.OriginAddresses {
+	for _, addr := range dmr.OriginAddresses {
 		fmt.Printf("  %q\n", addr)
 	}
 	fmt.Printf("Destination Addresses:\n")
-	for _, addr := range resp.DestinationAddresses {
+	for _, addr := range dmr.DestinationAddresses {
 		fmt.Printf("  %q\n", addr)
 	}
 	fmt.Printf("Distance Matrix Elements Row:\n")
-	for i, row := range resp.Rows {
+	for i, row := range dmr.Rows {
 		fmt.Printf("  %d:\n", i)
 		for j, elem := range row.Elements {
 			fmt.Printf("    %d:\n", j)
@@ -230,5 +210,16 @@ func main() {
 			fmt.Printf("        Meters: %d\n", elem.Distance.Meters)
 		}
 	}
-	fmt.Printf("%#v\n\n", resp)
+}
+
+func main() {
+	apiKey := os.Args[1]
+	glocs := os.Args[2:]
+
+	dmr, err := GetDistanceMatrix(apiKey, glocs)
+	if err != nil {
+		panic(err)
+	}
+
+	DumpDMR(dmr)
 }
