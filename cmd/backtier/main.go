@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/cmd/webtier2/lib"
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/cmd/backtier/lib"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/taskqueue"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/tsp/bruteforce"

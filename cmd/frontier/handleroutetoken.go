@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/cmd/webtier1/lib"
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/cmd/frontier/lib"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/taskqueue"
 	"github.com/golang/glog"
