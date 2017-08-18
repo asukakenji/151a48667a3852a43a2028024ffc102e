@@ -28,6 +28,14 @@ func LocationsToGoogleMapsLocations(locs common.Locations) []string {
 	return glocs
 }
 
+func PathToLocationPath(locs common.Locations, path []int) common.Locations {
+	locationPath := make([][]string, len(locs))
+	for i, index := range path {
+		locationPath[i] = locs[index]
+	}
+	return locationPath
+}
+
 /*
 GoogleMapsMatrixToMatrix is a helper function which transforms the parameter -
 a value returned from the Google Maps API -

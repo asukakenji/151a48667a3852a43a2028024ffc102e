@@ -50,56 +50,63 @@ func main() {
 			var _err error
 			qid, q, _err = taskqueue.FetchQuestion(conn, timeLimit)
 			if _err != nil {
-				glog.Errorf("Cannot fetch question")
+				glog.Errorf("main: cannot fetch question")
 				return _err
 			}
-			glog.Infof("qid: %d", qid)
+			glog.Infof("main: qid: %d", qid)
 
-			gid, _err := taskqueue.RegisterGarbage(conn, qid, q.Token)
+			gid, _err := taskqueue.RegisterGarbage(conn, q.Token, qid)
 			if _err != nil {
-				glog.Errorf("Cannot register garbage")
+				glog.Errorf("main: cannot register garbage")
 				return _err
 			}
-			glog.Info("gid: %d", gid)
+			glog.Info("main: gid: %d", gid)
 
 			aidp, a, _err := taskqueue.GetAnswer2(conn, q.Token)
 			if _err != nil {
-				glog.Errorf("Cannot get answer")
-				return _err
+				if cerr, ok := _err.(beanstalk.ConnError); !ok {
+					glog.Errorf("main: error occurred while getting answer")
+					return _err
+				} else if cerr.Err != beanstalk.ErrNotFound {
+					glog.Errorf("main: error occurred while getting answer")
+					return _err
+				}
 			}
-			glog.Infof("aidp: %d", aidp)
+			glog.Infof("main: aidp: %d", aidp)
 
 			if a != nil {
 				if a.QuestionID != qid {
-					// TODO: Clear answer now
+					glog.Errorf("main: token collision")
+					return lib.NewTokenCollisionError(q.Token, qid, a.QuestionID)
 				}
 
 				tc = a.TrialCount + 1
-				if tc >= maxTrialCount {
-					// TODO: return error
+				if tc == maxTrialCount {
+					glog.Errorf("main: trial count limit exceeded")
+					return lib.NewTrialCountLimitExceededError(q.Token, qid, maxTrialCount)
 				}
 			}
 
-			aidip, _err := taskqueue.SetAnswer(conn, qid, tc, q.Token, &common.DrivingRoute{
+			aidip, _err := taskqueue.SetAnswer(conn, q.Token, qid, tc, &common.DrivingRoute{
 				Status: "in progress",
 			})
 			if _err != nil {
-				glog.Errorf("Cannot set answer (in progress)")
+				glog.Errorf("main: cannot set answer (in progress)")
 				return _err
 			}
-			glog.Infof("aid (in progress): %d", aidip)
+			glog.Infof("main: aid (in progress): %d", aidip)
 
 			glocs := lib.LocationsToGoogleMapsLocations(q.Locations)
 
 			dmr, _err := lib.GetDistanceMatrix(apiKey, glocs)
 			if _err != nil {
-				glog.Errorf("Cannot get distance matrix")
+				glog.Errorf("main: cannot get distance matrix")
 				return _err
 			}
 
 			m, _err := lib.GoogleMapsMatrixToMatrix(dmr)
 			if _err != nil {
-				glog.Errorf("Cannot convert Google Maps Matrix to Matrix")
+				glog.Errorf("main: cannot convert Google Maps Matrix to Matrix")
 				return _err
 			}
 
@@ -111,42 +118,37 @@ func main() {
 			} else {
 				cost, path = heldkarp.TravellingSalesmanPath(m)
 			}
+			glog.Infof("main: cost: %d, path: %v", cost, path)
 
-			locationPath := make([][]string, size)
-			for i, index := range path {
-				locationPath[i] = q.Locations[index]
-			}
+			locationPath := lib.PathToLocationPath(q.Locations, path)
+			totalTime := int(lib.CalculateTotalTime(dmr, path).Seconds())
 
-			totalTime := lib.CalculateTotalTime(dmr, path)
-
-			dr := &common.DrivingRoute{
+			aids, _err := taskqueue.SetAnswer(conn, q.Token, qid, tc, &common.DrivingRoute{
 				Status:        "success",
-				Path:          common.Locations(locationPath),
+				Path:          locationPath,
 				TotalDistance: cost,
-				TotalTime:     int(totalTime.Seconds()),
-			}
-
-			aids, _err := taskqueue.SetAnswer(conn, qid, tc, q.Token, dr)
+				TotalTime:     totalTime,
+			})
 			if _err != nil {
-				glog.Errorf("Cannot set answer (success)")
+				glog.Errorf("main: cannot set answer (success)")
 				return _err
 			}
-			glog.Infof("aid (success): %d", aids)
+			glog.Infof("main: aid (success): %d", aids)
 
 			return nil
 		})
 		if err != nil {
 			glog.Errorf("main: %#v", err)
 			err2 := taskqueue.WithConnection(addr, func(conn *beanstalk.Conn) error {
-				aidf, _err := taskqueue.SetAnswer(conn, qid, tc, q.Token, &common.DrivingRoute{
+				aidf, _err := taskqueue.SetAnswer(conn, q.Token, qid, tc, &common.DrivingRoute{
 					Status: "failure",
 					Error:  err.Error(),
 				})
 				if _err != nil {
-					glog.Errorf("Cannot set answer (failure)")
+					glog.Errorf("main: cannot set answer (failure)")
 					return _err
 				}
-				glog.Infof("aid (failure): %d", aidf)
+				glog.Infof("main: aid (failure): %d", aidf)
 
 				return nil
 			})

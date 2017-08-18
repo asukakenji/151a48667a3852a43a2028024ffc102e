@@ -11,7 +11,7 @@ import (
 	"github.com/kr/beanstalk"
 )
 
-func SetAnswer(conn *beanstalk.Conn, qid uint64, tc int, token string, dr *common.DrivingRoute) (id uint64, err error) {
+func SetAnswer(conn *beanstalk.Conn, token string, qid uint64, tc int, dr *common.DrivingRoute) (id uint64, err error) {
 	buf := new(bytes.Buffer)
 	err = json.NewEncoder(buf).Encode(Answer{
 		QuestionID:   qid,
