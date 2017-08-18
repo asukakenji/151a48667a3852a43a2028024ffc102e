@@ -11,10 +11,11 @@ import (
 	"github.com/kr/beanstalk"
 )
 
-func SetAnswer(conn *beanstalk.Conn, token string, dr *common.DrivingRoute) (id uint64, err error) {
+func SetAnswer(conn *beanstalk.Conn, qid uint64, tc int, token string, dr *common.DrivingRoute) (id uint64, err error) {
 	buf := new(bytes.Buffer)
 	err = json.NewEncoder(buf).Encode(Answer{
-		Timestamp:    time.Now().Unix(),
+		QuestionID:   qid,
+		TrialCount:   tc,
 		DrivingRoute: dr,
 	})
 	if err != nil {

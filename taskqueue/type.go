@@ -29,6 +29,7 @@ func (q *Question) ToJSON(w io.Writer) error {
 }
 
 type Answer struct {
-	Timestamp    int64                `json:"timestamp"`
-	DrivingRoute *common.DrivingRoute `json:"driving_route"`
+	QuestionID   uint64               `json:"q"`
+	TrialCount   int                  `json:"t"`
+	DrivingRoute *common.DrivingRoute `json:"d"`
 }
