@@ -26,7 +26,7 @@ const (
 	heldKarpThreshold = 8 // TODO: Customize: heldKarpThreshold
 )
 
-func main() {
+func main1() {
 	// Check whether "-logtostderr=true" or "-logtostderr=false" is provided in
 	// command line. If yes, obey the command line option. Otherwise, use the
 	// default, "true".
@@ -44,18 +44,46 @@ func main() {
 	addr := "127.0.0.1:11300"    // TODO: Customize: addr
 	timeLimit := 5 * time.Second // TODO: Customize: timeLimit
 	apiKey := os.Args[1]         // TODO: Customize: apiKey
+	maxTrialCount := 3           // TODO: Customize: maxTrialCount
 	for {
+		var qid uint64
 		var q *taskqueue.Question
+		var tc int
 		err := taskqueue.WithConnection(addr, func(conn *beanstalk.Conn) error {
-			qid, _q, _err := taskqueue.FetchQuestion(conn, timeLimit)
+			var _err error
+			qid, q, _err = taskqueue.FetchQuestion(conn, timeLimit)
 			if _err != nil {
 				glog.Errorf("Cannot fetch question")
 				return _err
 			}
 			glog.Infof("qid: %d", qid)
-			q = _q
 
-			aidip, _err := taskqueue.SetAnswer(conn, _q.Token, &common.DrivingRoute{
+			gid, _err := taskqueue.RegisterGarbage(conn, qid, q.Token)
+			if _err != nil {
+				glog.Errorf("Cannot register garbage")
+				return _err
+			}
+			glog.Info("gid: %d", gid)
+
+			aidp, a, _err := taskqueue.GetAnswer2(conn, q.Token)
+			if _err != nil {
+				glog.Errorf("Cannot get answer")
+				return _err
+			}
+			glog.Infof("aidp: %d", aidp)
+
+			if a != nil {
+				if a.QuestionId != qid {
+					// TODO: Clear answer now
+				}
+
+				tc = a.TrialCount + 1
+				if tc >= maxTrialCount {
+					// TODO: return error
+				}
+			}
+
+			aidip, _err := taskqueue.SetAnswer(conn, qid, tc, q.Token, &common.DrivingRoute{
 				Status: "in progress",
 			})
 			if _err != nil {
@@ -76,9 +104,9 @@ func main() {
 			var path []int
 			size := len(q.Locations)
 			if size < heldKarpThreshold {
-				cost, path = bruteforce.TravellingSalesmanTour(m)
+				cost, path = bruteforce.TravellingSalesmanPath(m)
 			} else {
-				cost, path = heldkarp.TravellingSalesmanTour(m)
+				cost, path = heldkarp.TravellingSalesmanPath(m)
 			}
 
 			locationPath := make([][]string, size)
@@ -92,10 +120,10 @@ func main() {
 				Status:        "success",
 				Path:          common.Locations(locationPath),
 				TotalDistance: cost,
-				TotalTime:     totalTime,
+				TotalTime:     int(totalTime.Seconds()),
 			}
 
-			aids, _err := taskqueue.SetAnswer(conn, _q.Token, dr)
+			aids, _err := taskqueue.SetAnswer(conn, qid, tc, q.Token, dr)
 			if _err != nil {
 				glog.Errorf("Cannot set answer (success)")
 				return _err
@@ -107,7 +135,7 @@ func main() {
 		if err != nil {
 			glog.Errorf("main: %#v", err)
 			err2 := taskqueue.WithConnection(addr, func(conn *beanstalk.Conn) error {
-				aidf, _err := taskqueue.SetAnswer(conn, q.Token, &common.DrivingRoute{
+				aidf, _err := taskqueue.SetAnswer(conn, qid, tc, q.Token, &common.DrivingRoute{
 					Status: "failure",
 					Error:  err.Error(),
 				})
@@ -157,7 +185,7 @@ func GetDistanceMatrix(apiKey string, locs common.Locations) (*maps.DistanceMatr
 	return resp, nil
 }
 
-func main1() {
+func main() {
 	c, err := maps.NewClient(maps.WithAPIKey(os.Args[1]))
 	if err != nil {
 		panic(err)
@@ -193,13 +221,13 @@ func main1() {
 	for i, row := range resp.Rows {
 		fmt.Printf("  %d:\n", i)
 		for j, elem := range row.Elements {
-			duration := (elem.Duration.Seconds())
-			durationInTraffic := (elem.DurationInTraffic.Seconds())
 			fmt.Printf("    %d:\n", j)
 			fmt.Printf("      Status: %q\n", elem.Status)
-			fmt.Printf("      Duration: %f\n", duration)
-			fmt.Printf("      DurationInTraffic: %f\n", durationInTraffic)
-			fmt.Printf("      Distance: %d\n", elem.Distance.Meters)
+			fmt.Printf("      Duration: %d\n", elem.Duration)
+			fmt.Printf("      DurationInTraffic: %d\n", elem.DurationInTraffic)
+			fmt.Printf("      Distance:\n")
+			fmt.Printf("        Human Readable: %q\n", elem.Distance.HumanReadable)
+			fmt.Printf("        Meters: %d\n", elem.Distance.Meters)
 		}
 	}
 	fmt.Printf("%#v\n\n", resp)

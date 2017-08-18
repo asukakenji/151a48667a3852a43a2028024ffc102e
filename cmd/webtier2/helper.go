@@ -68,6 +68,7 @@ func GoogleMapsMatrixToMatrix(dmr *maps.DistanceMatrixResponse) matrix.Matrix {
 		for c, element := range row.Elements {
 			if r == c {
 				m[r][c] = constant.Infinity
+				continue
 			}
 			m[r][c] = element.Distance.Meters
 		}
@@ -81,16 +82,16 @@ the estimated total time needed for driving along the given path
 from the information retrieved from Google Maps API.
 
 It takes a *maps.DistanceMatrixResponse value and a path as input,
-and returns the estimated total time needed in seconds as output.
+and returns the estimated total time needed as output.
 The field used to calculate the total time is
 dmr.Rows[from].Elements[to].Duration,
 where from and to are the indices of the locations.
 */
-func CalculateTotalTime(dmr *maps.DistanceMatrixResponse, path []int) int {
+func CalculateTotalTime(dmr *maps.DistanceMatrixResponse, path []int) time.Duration {
 	totalTime := time.Duration(0)
 	size := len(path)
 	for i := 1; i < size; i++ {
 		totalTime += dmr.Rows[path[i-1]].Elements[path[i]].Duration
 	}
-	return int(totalTime.Seconds())
+	return totalTime
 }

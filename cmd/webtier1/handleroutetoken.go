@@ -35,7 +35,7 @@ func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
 	}
 
 	err = taskqueue.WithConnection(addr, func(conn *beanstalk.Conn) error {
-		_id, _dr, _err := taskqueue.GetAnswer(conn, token)
+		_id, _dr, _err := taskqueue.GetAnswer1(conn, token)
 		id, dr = _id, _dr
 		return _err
 	})
