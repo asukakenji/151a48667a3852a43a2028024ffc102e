@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/cmd/frontier/lib"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/taskqueue"
 	"github.com/golang/glog"
@@ -23,7 +24,7 @@ func SubmitStartPointAndDropOffLocations(w http.ResponseWriter, req *http.Reques
 	// For server requests the Request Body is always non-nil but will return
 	// EOF immediately when no body is present. The Server will close the
 	// request body. The ServeHTTP Handler does not need to.
-	locs, err := common.LocationsFromJSON(req.Body)
+	locs, err := lib.LocationsFromJSON(req.Body)
 	if err != nil {
 		status = http.StatusBadRequest
 		goto HandleError

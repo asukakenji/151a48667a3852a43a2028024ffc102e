@@ -1,12 +1,5 @@
 package common
 
-import (
-	"encoding/json"
-	"io"
-	"regexp"
-	"strconv"
-)
-
 /*
 Locations is a list (slice) of latitude-longitude pairs.
 
@@ -41,98 +34,6 @@ Here is an example of a valid Locations:
 	}
 */
 type Locations [][]string
-
-const (
-	integralPart   = `(?:-?|-?0|-?[1-9][0-9]*)`
-	fractionalPart = `[0-9]*`
-)
-
-var (
-	decimalRegex = regexp.MustCompile(
-		`^(?:` +
-			integralPart + `|` +
-			`\.` + fractionalPart + `|` +
-			integralPart + `\.` + fractionalPart +
-			`)$`,
-	)
-)
-
-// isLatitude checks whether s is a valid decimal.
-func isDecimal(s string) bool {
-	switch s {
-	case "":
-		return false
-	case "-":
-		return false
-	case ".":
-		return false
-	case "-.":
-		return false
-	default:
-		return decimalRegex.MatchString(s)
-	}
-}
-
-// isLatitude checks whether s is a valid latitude.
-func isLatitude(s string) bool {
-	if !isDecimal(s) {
-		return false
-	}
-	f, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		return false
-	}
-	if f < -90 || f > 90 {
-		return false
-	}
-	return true
-}
-
-// isLongitude checks whether s is a valid longitude.
-func isLongitude(s string) bool {
-	if !isDecimal(s) {
-		return false
-	}
-	f, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		return false
-	}
-	if f < -180 || f > 180 {
-		return false
-	}
-	return true
-}
-
-// LocationsFromJSON reads from r, parses the content as JSON, and returns the
-// Locations value.
-func LocationsFromJSON(r io.Reader) (locs Locations, err error) {
-	_err := json.NewDecoder(r).Decode(&locs)
-	if _err != nil {
-		hash := NewToken()
-		return nil, NewJSONDecodeError(_err, hash)
-	}
-
-	if len(locs) < 2 {
-		hash := NewToken()
-		return nil, NewInsufficientLocationCountError(locs, hash)
-	}
-
-	for i, loc := range locs {
-		if len(loc) != 2 {
-			hash := NewToken()
-			return nil, NewInvalidLocationError(locs, i, hash)
-		}
-		if !isLatitude(loc[0]) {
-			hash := NewToken()
-			return nil, NewLatitudeError(locs, i, hash)
-		}
-		if !isLongitude(loc[1]) {
-			hash := NewToken()
-			return nil, NewLongitudeError(locs, i, hash)
-		}
-	}
-	return locs, nil
-}
 
 /*
 DrivingRoute contains a driving route response.

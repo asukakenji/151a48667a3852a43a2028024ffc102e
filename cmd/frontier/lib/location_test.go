@@ -1,9 +1,11 @@
-package common
+package lib
 
 import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 )
 
 func TestIsDecimal(t *testing.T) {
@@ -127,17 +129,17 @@ func TestIsLongitude(t *testing.T) {
 func TestLocationFromJSON(t *testing.T) {
 	cases := []struct {
 		s               string
-		expectedLocs    Locations
+		expectedLocs    common.Locations
 		expectedErrType error
 	}{
-		{`{}`, nil, JSONDecodeError{}},
+		{`{}`, nil, common.JSONDecodeError{}},
 		{`[]`, nil, InsufficientLocationCountError{}},
 		{`[["22.372081","114.107877"],["22.284419","114.159510","22.326442"]]`, nil, InvalidLocationError{}},
 		{`[["90.372081","114.107877"],["22.284419","114.159510"]]`, nil, LatitudeError{}},
 		{`[["22.372081","114.107877"],["22.284419","180.159510"]]`, nil, LongitudeError{}},
 		{
 			`[["22.372081","114.107877"],["22.284419","114.159510"],["22.326442","114.167811"]]`,
-			Locations{
+			common.Locations{
 				{"22.372081", "114.107877"},
 				{"22.284419", "114.159510"},
 				{"22.326442", "114.167811"},
