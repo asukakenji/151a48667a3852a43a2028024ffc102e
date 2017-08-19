@@ -34,7 +34,7 @@ func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
 		goto HandleError
 	}
 
-	err = taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) error {
+	err = taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.MyError {
 		_id, _dr, _err := taskqueue.GetAnswer1(conn, token)
 		id, dr = _id, _dr
 		return _err

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/taskqueue"
 	"github.com/golang/glog"
 )
@@ -25,9 +26,9 @@ func main() {
 	addr := "127.0.0.1:11300" // TODO: Customize: addr
 
 	for {
-		err := taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) error {
+		err := taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.MyError {
 			for {
-				gid, g, _err := taskqueue.ReserveGarbage(conn)
+				gid, g, _err := taskqueue.FetchGarbage(conn)
 				if _err != nil {
 					glog.Errorf("main: cannot reserve garbage")
 					return _err

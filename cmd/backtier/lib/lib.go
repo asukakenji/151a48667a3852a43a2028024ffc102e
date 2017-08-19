@@ -3,13 +3,17 @@ package lib
 import (
 	"context"
 
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
+
 	"googlemaps.github.io/maps"
 )
 
-func GetDistanceMatrix(apiKey string, glocs []string) (*maps.DistanceMatrixResponse, error) {
+// TODO: Error handling not yet updated
+func GetDistanceMatrix(apiKey string, glocs []string) (*maps.DistanceMatrixResponse, common.MyError) {
 	c, err := maps.NewClient(maps.WithAPIKey(apiKey))
 	if err != nil {
-		return nil, err
+		//TODO: return nil, err
+		return nil, nil
 	}
 
 	ctx := context.Background()
@@ -28,7 +32,8 @@ func GetDistanceMatrix(apiKey string, glocs []string) (*maps.DistanceMatrixRespo
 	}
 	resp, err := c.DistanceMatrix(ctx, r)
 	if err != nil {
-		return nil, err
+		//TODO: return nil, err
+		return nil, nil
 	}
 
 	return resp, nil

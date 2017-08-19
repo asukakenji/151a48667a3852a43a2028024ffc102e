@@ -37,76 +37,77 @@ func main() {
 		flag.Set("logtostderr", "true")
 	}
 
-	addr := "127.0.0.1:11300"    // TODO: Customize: addr
-	timeLimit := 5 * time.Second // TODO: Customize: timeLimit
-	apiKey := os.Args[1]         // TODO: Customize: apiKey
-	maxRetryCount := 3           // TODO: Customize: maxRetryCount
-	delay := 10 * time.Minute    // TODO: Customize: delay
-	ttr := 1 * time.Minute       // TODO: Customize: delay
+	addr := "127.0.0.1:11300" // TODO: Customize: addr
+	apiKey := os.Args[1]      // TODO: Customize: apiKey
+	maxRetryCount := 3        // TODO: Customize: maxRetryCount
+	delay := 10 * time.Minute // TODO: Customize: delay
+	ttr := 1 * time.Minute    // TODO: Customize: delay
 	for {
 		var qid uint64
 		var q *taskqueue.Question
 		var rc int
-		err := taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) error {
+		err := taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.MyError {
+			var err2 common.MyError
 			for {
-				var _err error
-				qid, q, _err = taskqueue.FetchQuestion(conn, timeLimit)
-				if _err != nil {
-					glog.Errorf("main: cannot fetch question")
-					return _err
+				qid, q, err2 = taskqueue.FetchQuestion(conn)
+				if err2 != nil {
+					glog.Errorf("[%s] main: cannot fetch question", err2.Hash())
+					return err2
 				}
 				glog.Infof("main: qid: %d", qid)
 
-				gid, _err := taskqueue.RegisterGarbage(conn, q.Token, qid, delay, ttr)
-				if _err != nil {
-					glog.Errorf("main: cannot register garbage")
-					return _err
+				gid, err2 := taskqueue.RegisterGarbage(conn, q.Token, qid, delay, ttr)
+				if err2 != nil {
+					glog.Errorf("[%s] main: cannot register garbage", err2.Hash())
+					return err2
 				}
 				glog.Info("main: gid: %d", gid)
 
-				aidp, a, _err := taskqueue.GetAnswer2(conn, q.Token)
-				if _err != nil {
-					if _, ok := _err.(taskqueue.NotFoundError); !ok {
-						glog.Errorf("main: error occurred while getting answer")
-						return _err
+				aidp, a, err2 := taskqueue.GetAnswer2(conn, q.Token)
+				if err2 != nil {
+					if _, ok := err2.(taskqueue.NotFoundError); !ok {
+						glog.Errorf("[%s] main: error occurred while getting answer", err2.Hash())
+						return err2
 					}
 				}
 				glog.Infof("main: aidp: %d", aidp)
 
 				if a != nil {
 					if a.QuestionID != qid {
-						glog.Errorf("main: token collision")
-						return lib.NewTokenCollisionError(q.Token, qid, a.QuestionID)
+						hash := common.NewToken()
+						glog.Errorf("[%s] main: token collision", hash)
+						return lib.NewTokenCollisionError(q.Token, qid, a.QuestionID, hash)
 					}
 
 					rc = a.RetryCount + 1
 					if rc == maxRetryCount {
-						glog.Errorf("main: retry count limit exceeded")
-						return lib.NewRetryCountLimitExceededError(q.Token, qid, maxRetryCount)
+						hash := common.NewToken()
+						glog.Errorf("[%s] main: retry count limit exceeded", hash)
+						return lib.NewRetryCountLimitExceededError(q.Token, qid, maxRetryCount, hash)
 					}
 				}
 
-				aidip, _err := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
+				aidip, err2 := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
 					Status: "in progress",
 				})
-				if _err != nil {
-					glog.Errorf("main: cannot set answer (in progress)")
-					return _err
+				if err2 != nil {
+					glog.Errorf("[%s] main: cannot set answer (in progress)", err2.Hash())
+					return err2
 				}
 				glog.Infof("main: aid (in progress): %d", aidip)
 
 				glocs := lib.LocationsToGoogleMapsLocations(q.Locations)
 
-				dmr, _err := lib.GetDistanceMatrix(apiKey, glocs)
-				if _err != nil {
-					glog.Errorf("main: cannot get distance matrix")
-					return _err
+				dmr, err2 := lib.GetDistanceMatrix(apiKey, glocs)
+				if err2 != nil {
+					glog.Errorf("[%s] main: cannot get distance matrix", err2.Hash())
+					return err2
 				}
 
-				m, _err := lib.GoogleMapsMatrixToMatrix(dmr)
-				if _err != nil {
-					glog.Errorf("main: cannot convert Google Maps Matrix to Matrix")
-					return _err
+				m, err2 := lib.GoogleMapsMatrixToMatrix(dmr)
+				if err2 != nil {
+					glog.Errorf("[%s] main: cannot convert Google Maps Matrix to Matrix", err2.Hash())
+					return err2
 				}
 
 				var cost int
@@ -122,37 +123,34 @@ func main() {
 				locationPath := lib.PathToLocationPath(q.Locations, path)
 				totalTime := int(lib.CalculateTotalTime(dmr, path).Seconds())
 
-				aids, _err := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
+				aids, err2 := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
 					Status:        "success",
 					Path:          locationPath,
 					TotalDistance: cost,
 					TotalTime:     totalTime,
 				})
-				if _err != nil {
-					glog.Errorf("main: cannot set answer (success)")
-					return _err
+				if err2 != nil {
+					glog.Errorf("[%s] main: cannot set answer (success)", err2.Hash())
+					return err2
 				}
 				glog.Infof("main: aid (success): %d", aids)
 			}
 		})
 		if err != nil {
 			glog.Errorf("main: %#v", err)
-			err2 := taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) error {
-				aidf, _err := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
+			taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.MyError {
+				aidf, err2 := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
 					Status: "failure",
 					Error:  err.Error(),
 				})
-				if _err != nil {
-					glog.Errorf("main: cannot set answer (failure)")
-					return _err
+				if err2 != nil {
+					glog.Errorf("[%s] main: cannot set answer (failure)", err2.Hash())
+					return err2
 				}
 				glog.Infof("main: aid (failure): %d", aidf)
 
 				return nil
 			})
-			if err2 != nil {
-				break
-			}
 		}
 	}
 }

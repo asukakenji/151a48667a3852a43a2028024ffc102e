@@ -8,35 +8,40 @@ import (
 	"github.com/kr/beanstalk"
 )
 
-func FetchQuestion(conn *Connection) (qid uint64, q *Question, err common.MyError) {
+func FetchGarbage(conn *Connection) (gid uint64, g *Garbage, err common.MyError) {
+	tubeSet := beanstalk.NewTubeSet(
+		conn.Conn,
+		"garbage",
+	)
+
 	for {
-		qid, body, _err := conn.Conn.Reserve(
+		gid, body, _err := tubeSet.Reserve(
 			TimeForever, // timeout
 		)
 		if _err != nil {
 			hash := common.NewToken()
 			if cerr, ok := _err.(beanstalk.ConnError); !ok {
-				glog.Errorf("[%s] FetchQuestion: Non-ConnError", hash)
+				glog.Errorf("[%s] FetchGarbage: Non-ConnError", hash)
 				return 0, nil, NewUnexpectedError(_err, hash)
 			} else if cerr.Err == beanstalk.ErrTimeout {
-				glog.Infof("[%s] FetchQuestion: Timeout", hash)
+				glog.Infof("[%s] FetchGarbage: Timeout", hash)
 				continue
 			} else if cerr.Err == beanstalk.ErrDeadline {
-				glog.Infof("[%s] FetchQuestion: Deadline Soon", hash)
+				glog.Infof("[%s] FetchGarbage: Deadline Soon", hash)
 				time.Sleep(1 * time.Second)
 				continue
 			}
-			glog.Errorf("[%s] FetchQuestion: Unknown ConnError", hash)
+			glog.Errorf("[%s] FetchGarbage: Unknown ConnError", hash)
 			return 0, nil, NewUnexpectedError(_err, hash)
 		}
-		glog.Infof("FetchQuestion: qid: %d", qid)
+		glog.Infof("FetchGarbage: gid: %d", gid)
 
-		q, err := QuestionFromJSONBytes(body)
+		g, err := GarbageFromJSONBytes(body)
 		if err != nil {
-			glog.Errorf("[%s] FetchQuestion: Decode from JSON", err.Hash())
+			glog.Errorf("[%s] FetchGarbage: Decode from JSON", err.Hash())
 			return 0, nil, err
 		}
 
-		return qid, q, nil
+		return gid, g, nil
 	}
 }

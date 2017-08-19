@@ -32,7 +32,7 @@ func SubmitStartPointAndDropOffLocations(w http.ResponseWriter, req *http.Reques
 
 	token = common.NewToken()
 
-	err = taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) error {
+	err = taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.MyError {
 		_id, _err := taskqueue.AddQuestion(conn, token, locs, timeLimit)
 		id = _id
 		return _err

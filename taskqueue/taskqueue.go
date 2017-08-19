@@ -82,7 +82,7 @@ const (
 	TimeForever = math.MaxUint32 * time.Second
 )
 
-func WithConnection(addr string, do func(*Connection) error) error {
+func WithConnection(addr string, do func(*Connection) common.MyError) common.MyError {
 	conn, err := beanstalk.Dial("tcp", addr)
 	if err != nil {
 		hash := common.NewToken()

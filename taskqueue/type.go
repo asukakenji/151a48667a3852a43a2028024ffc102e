@@ -20,7 +20,7 @@ type Question struct {
 	Locations common.Locations `json:"l"`
 }
 
-func QuestionFromJSON(r io.Reader) (q *Question, err error) {
+func QuestionFromJSON(r io.Reader) (q *Question, err common.MyError) {
 	_err := json.NewDecoder(r).Decode(q)
 	if _err != nil {
 		hash := common.NewToken()
@@ -29,7 +29,11 @@ func QuestionFromJSON(r io.Reader) (q *Question, err error) {
 	return q, nil
 }
 
-func (q Question) ToJSON(w io.Writer) error {
+func QuestionFromJSONBytes(bs []byte) (q *Question, err common.MyError) {
+	return QuestionFromJSON(bytes.NewReader(bs))
+}
+
+func (q Question) ToJSON(w io.Writer) common.MyError {
 	_err := json.NewEncoder(w).Encode(q)
 	if _err != nil {
 		hash := common.NewToken()
@@ -38,13 +42,13 @@ func (q Question) ToJSON(w io.Writer) error {
 	return nil
 }
 
-func (q Question) ToJSONBytes() ([]byte, error) {
-	buf := new(bytes.Buffer)
-	err := q.ToJSON(buf)
+func (q Question) ToJSONBytes() ([]byte, common.MyError) {
+	w := new(bytes.Buffer)
+	err := q.ToJSON(w)
 	if err != nil {
 		return nil, err
 	}
-	return buf.Bytes(), nil
+	return w.Bytes(), nil
 }
 
 type Answer struct {
@@ -54,7 +58,20 @@ type Answer struct {
 	DrivingRoute *common.DrivingRoute `json:"d"`
 }
 
-func (a Answer) ToJSON(w io.Writer) error {
+func AnswerFromJSON(r io.Reader) (a *Answer, err common.MyError) {
+	_err := json.NewDecoder(r).Decode(a)
+	if _err != nil {
+		hash := common.NewToken()
+		return nil, common.NewJSONDecodeError(_err, hash)
+	}
+	return a, nil
+}
+
+func AnswerFromJSONBytes(bs []byte) (q *Answer, err common.MyError) {
+	return AnswerFromJSON(bytes.NewReader(bs))
+}
+
+func (a Answer) ToJSON(w io.Writer) common.MyError {
 	_err := json.NewEncoder(w).Encode(a)
 	if _err != nil {
 		hash := common.NewToken()
@@ -63,13 +80,13 @@ func (a Answer) ToJSON(w io.Writer) error {
 	return nil
 }
 
-func (a Answer) ToJSONBytes() ([]byte, error) {
-	buf := new(bytes.Buffer)
-	err := a.ToJSON(buf)
+func (a Answer) ToJSONBytes() ([]byte, common.MyError) {
+	w := new(bytes.Buffer)
+	err := a.ToJSON(w)
 	if err != nil {
 		return nil, err
 	}
-	return buf.Bytes(), nil
+	return w.Bytes(), nil
 }
 
 type Garbage struct {
@@ -78,7 +95,20 @@ type Garbage struct {
 	QuestionID uint64    `json:"q"`
 }
 
-func (g Garbage) ToJSON(w io.Writer) error {
+func GarbageFromJSON(r io.Reader) (g *Garbage, err common.MyError) {
+	_err := json.NewDecoder(r).Decode(g)
+	if _err != nil {
+		hash := common.NewToken()
+		return nil, common.NewJSONDecodeError(_err, hash)
+	}
+	return g, nil
+}
+
+func GarbageFromJSONBytes(bs []byte) (g *Garbage, err common.MyError) {
+	return GarbageFromJSON(bytes.NewReader(bs))
+}
+
+func (g Garbage) ToJSON(w io.Writer) common.MyError {
 	_err := json.NewEncoder(w).Encode(g)
 	if _err != nil {
 		hash := common.NewToken()
@@ -87,7 +117,7 @@ func (g Garbage) ToJSON(w io.Writer) error {
 	return nil
 }
 
-func (g Garbage) ToJSONBytes() ([]byte, error) {
+func (g Garbage) ToJSONBytes() ([]byte, common.MyError) {
 	buf := new(bytes.Buffer)
 	err := g.ToJSON(buf)
 	if err != nil {

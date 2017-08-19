@@ -10,10 +10,11 @@ type TokenCollisionError struct {
 	newQuestionID uint64
 	oldQuestionID uint64
 	token         string
+	hash          string
 }
 
-func NewTokenCollisionError(token string, newQuestionId, oldQuestionId uint64) TokenCollisionError {
-	return TokenCollisionError{newQuestionId, oldQuestionId, token}
+func NewTokenCollisionError(token string, newQuestionId, oldQuestionId uint64, hash string) TokenCollisionError {
+	return TokenCollisionError{newQuestionId, oldQuestionId, token, hash}
 }
 
 func (err TokenCollisionError) NewQuestionID() uint64 {
@@ -26,6 +27,9 @@ func (err TokenCollisionError) OldQuestionID() uint64 {
 
 func (err TokenCollisionError) Token() string {
 	return err.token
+}
+func (err TokenCollisionError) Hash() string {
+	return err.hash
 }
 
 func (err TokenCollisionError) Error() string {
@@ -46,10 +50,11 @@ type RetryCountLimitExceededError struct {
 	questionID    uint64
 	maxRetryCount int
 	token         string
+	hash          string
 }
 
-func NewRetryCountLimitExceededError(token string, questionID uint64, maxRetryCount int) RetryCountLimitExceededError {
-	return RetryCountLimitExceededError{questionID, maxRetryCount, token}
+func NewRetryCountLimitExceededError(token string, questionID uint64, maxRetryCount int, hash string) RetryCountLimitExceededError {
+	return RetryCountLimitExceededError{questionID, maxRetryCount, token, hash}
 }
 
 func (err RetryCountLimitExceededError) QuestionID() uint64 {
@@ -62,6 +67,10 @@ func (err RetryCountLimitExceededError) MaxRetryCount() int {
 
 func (err RetryCountLimitExceededError) Token() string {
 	return err.token
+}
+
+func (err RetryCountLimitExceededError) Hash() string {
+	return err.hash
 }
 
 func (err RetryCountLimitExceededError) Error() string {

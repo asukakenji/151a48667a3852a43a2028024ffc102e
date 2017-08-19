@@ -66,7 +66,8 @@ dmr.Rows[r].Elements[c].Distance.Meters in the input dmr,
 except when r == c, where m.Get(r, c) equals constant.Infinity
 to fit the Travelling Salesman problem.
 */
-func GoogleMapsMatrixToMatrix(dmr *maps.DistanceMatrixResponse) (matrix.Matrix, error) {
+func GoogleMapsMatrixToMatrix(dmr *maps.DistanceMatrixResponse) (matrix.Matrix, common.MyError) {
+	// TODO: Error handling not yet updated
 	if dmr == nil {
 		return matrix.NewSquareMatrix([][]int{}), nil
 	}
@@ -77,9 +78,11 @@ func GoogleMapsMatrixToMatrix(dmr *maps.DistanceMatrixResponse) (matrix.Matrix, 
 			if element.Status != "OK" {
 				switch status := element.Status; status {
 				case "NOT_FOUND":
-					return nil, LocationNotFoundError{dmr, r, c}
+					//TODO: return nil, LocationNotFoundError{dmr, r, c}
+					return nil, nil
 				case "ZERO_RESULTS":
-					return nil, RouteNotFoundError{dmr, r, c}
+					//TODO: return nil, RouteNotFoundError{dmr, r, c}
+					return nil, nil
 				default:
 					return nil, common.WrapError(fmt.Errorf("Unknown error: Status: %q", status), "f8de639fab2bc7ab65c3153df6b8ee9e")
 				}
