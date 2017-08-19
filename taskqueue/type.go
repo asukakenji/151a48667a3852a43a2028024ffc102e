@@ -1,6 +1,7 @@
 package taskqueue
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"time"
@@ -28,13 +29,22 @@ func QuestionFromJSON(r io.Reader) (q *Question, err error) {
 	return q, nil
 }
 
-func (q *Question) ToJSON(w io.Writer) error {
+func (q Question) ToJSON(w io.Writer) error {
 	_err := json.NewEncoder(w).Encode(q)
 	if _err != nil {
 		hash := common.NewToken()
 		return common.NewJSONEncodeError(_err, hash)
 	}
 	return nil
+}
+
+func (q Question) ToJSONBytes() ([]byte, error) {
+	buf := new(bytes.Buffer)
+	err := q.ToJSON(buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 type Answer struct {
@@ -44,8 +54,44 @@ type Answer struct {
 	DrivingRoute *common.DrivingRoute `json:"d"`
 }
 
+func (a Answer) ToJSON(w io.Writer) error {
+	_err := json.NewEncoder(w).Encode(a)
+	if _err != nil {
+		hash := common.NewToken()
+		return common.NewJSONEncodeError(_err, hash)
+	}
+	return nil
+}
+
+func (a Answer) ToJSONBytes() ([]byte, error) {
+	buf := new(bytes.Buffer)
+	err := a.ToJSON(buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
 type Garbage struct {
 	Timestamp  time.Time `json:"t"`
 	Token      string    `json:"x"`
 	QuestionID uint64    `json:"q"`
+}
+
+func (g Garbage) ToJSON(w io.Writer) error {
+	_err := json.NewEncoder(w).Encode(g)
+	if _err != nil {
+		hash := common.NewToken()
+		return common.NewJSONEncodeError(_err, hash)
+	}
+	return nil
+}
+
+func (g Garbage) ToJSONBytes() ([]byte, error) {
+	buf := new(bytes.Buffer)
+	err := g.ToJSON(buf)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }

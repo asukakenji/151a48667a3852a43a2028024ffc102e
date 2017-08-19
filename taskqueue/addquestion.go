@@ -1,7 +1,6 @@
 package taskqueue
 
 import (
-	"bytes"
 	"time"
 
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
@@ -10,46 +9,47 @@ import (
 )
 
 // timeLimit = execution time limit
-func AddQuestion(conn *Connection, token string, locs common.Locations, timeLimit time.Duration) (id uint64, err error) {
+// ttr = time to run
+func AddQuestion(conn *Connection, token string, locs common.Locations, ttr time.Duration) (id uint64, err error) {
 	now := time.Now()
-	buf := new(bytes.Buffer)
-	q := Question{
+	q, err := Question{
 		Timestamp: now,
 		Token:     token,
 		Locations: locs,
-	}
-	err = q.ToJSON(buf)
+	}.ToJSONBytes()
 	if err != nil {
-		glog.Errorf("AddQuestion: Encode JSON: %#v", err)
+		err := err.(common.MyError)
+		glog.Errorf("[%s] AddQuestion: Encode to JSON", err.Hash())
 		return 0, err
 	}
 
 	id, err = conn.Conn.Put(
-		buf.Bytes(),        // body
+		q,                  // body
 		uint32(now.Unix()), // pri
 		time.Duration(0),   // delay: immediately ready
-		timeLimit,          // ttr: let caller set how long it is allowed to run
+		ttr,                // ttr: let caller set how long it is allowed to run
 	)
 	if err != nil {
+		hash := common.NewToken()
 		if cerr, ok := err.(beanstalk.ConnError); !ok {
-			glog.Errorf("AddQuestion: Non-ConnError: %#v", err)
-			return 0, err
+			glog.Errorf("[%s] AddQuestion: Non-ConnError", hash)
+			return 0, NewUnexpectedError(err, hash)
 		} else if cerr.Err == beanstalk.ErrBuried {
-			glog.Errorf("AddQuestion: Buried: %#v", err)
-			return 0, err
+			glog.Errorf("[%s] AddQuestion: Burried", hash)
+			return 0, NewUnexpectedError(err, hash)
 		} else if cerr.Err == beanstalk.ErrNoCRLF {
-			glog.Errorf("AddQuestion: Expected CRLF: %#v", err)
-			return 0, err
+			glog.Errorf("[%s] AddQuestion: Expected CRLF", hash)
+			return 0, NewUnexpectedError(err, hash)
 		} else if cerr.Err == beanstalk.ErrJobTooBig {
-			glog.Errorf("AddQuestion: Job too big: %#v", err)
-			return 0, err
+			glog.Errorf("[%s] AddQuestion: Job Too Big", hash)
+			return 0, NewJobTooBigError(err, hash)
 		} else if cerr.Err == beanstalk.ErrDraining {
-			glog.Errorf("AddQuestion: Draining: %#v", err)
-			return 0, err
+			glog.Errorf("[%s] AddQuestion: Draining", hash)
+			return 0, NewUnexpectedError(err, hash)
 		}
-		glog.Errorf("AddQuestion: Unknown error: %#v", err)
-		return 0, err
+		glog.Errorf("[%s] AddQuestion: Unknown ConnError", hash)
+		return 0, NewUnexpectedError(err, hash)
 	}
-	glog.Infof("AddQuestion: token: %q, id: %d", token, id)
+	glog.Infof("AddQuestion: token: %q, qid: %d", token, id)
 	return id, nil
 }

@@ -41,97 +41,99 @@ func main() {
 	timeLimit := 5 * time.Second // TODO: Customize: timeLimit
 	apiKey := os.Args[1]         // TODO: Customize: apiKey
 	maxRetryCount := 3           // TODO: Customize: maxRetryCount
+	delay := 10 * time.Minute    // TODO: Customize: delay
+	ttr := 1 * time.Minute       // TODO: Customize: delay
 	for {
 		var qid uint64
 		var q *taskqueue.Question
 		var rc int
 		err := taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) error {
-			var _err error
-			qid, q, _err = taskqueue.FetchQuestion(conn, timeLimit)
-			if _err != nil {
-				glog.Errorf("main: cannot fetch question")
-				return _err
-			}
-			glog.Infof("main: qid: %d", qid)
-
-			gid, _err := taskqueue.RegisterGarbage(conn, q.Token, qid)
-			if _err != nil {
-				glog.Errorf("main: cannot register garbage")
-				return _err
-			}
-			glog.Info("main: gid: %d", gid)
-
-			aidp, a, _err := taskqueue.GetAnswer2(conn, q.Token)
-			if _err != nil {
-				if _, ok := _err.(taskqueue.NotFoundError); !ok {
-					glog.Errorf("main: error occurred while getting answer")
+			for {
+				var _err error
+				qid, q, _err = taskqueue.FetchQuestion(conn, timeLimit)
+				if _err != nil {
+					glog.Errorf("main: cannot fetch question")
 					return _err
 				}
-			}
-			glog.Infof("main: aidp: %d", aidp)
+				glog.Infof("main: qid: %d", qid)
 
-			if a != nil {
-				if a.QuestionID != qid {
-					glog.Errorf("main: token collision")
-					return lib.NewTokenCollisionError(q.Token, qid, a.QuestionID)
+				gid, _err := taskqueue.RegisterGarbage(conn, q.Token, qid, delay, ttr)
+				if _err != nil {
+					glog.Errorf("main: cannot register garbage")
+					return _err
+				}
+				glog.Info("main: gid: %d", gid)
+
+				aidp, a, _err := taskqueue.GetAnswer2(conn, q.Token)
+				if _err != nil {
+					if _, ok := _err.(taskqueue.NotFoundError); !ok {
+						glog.Errorf("main: error occurred while getting answer")
+						return _err
+					}
+				}
+				glog.Infof("main: aidp: %d", aidp)
+
+				if a != nil {
+					if a.QuestionID != qid {
+						glog.Errorf("main: token collision")
+						return lib.NewTokenCollisionError(q.Token, qid, a.QuestionID)
+					}
+
+					rc = a.RetryCount + 1
+					if rc == maxRetryCount {
+						glog.Errorf("main: retry count limit exceeded")
+						return lib.NewRetryCountLimitExceededError(q.Token, qid, maxRetryCount)
+					}
 				}
 
-				rc = a.RetryCount + 1
-				if rc == maxRetryCount {
-					glog.Errorf("main: retry count limit exceeded")
-					return lib.NewRetryCountLimitExceededError(q.Token, qid, maxRetryCount)
+				aidip, _err := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
+					Status: "in progress",
+				})
+				if _err != nil {
+					glog.Errorf("main: cannot set answer (in progress)")
+					return _err
 				}
+				glog.Infof("main: aid (in progress): %d", aidip)
+
+				glocs := lib.LocationsToGoogleMapsLocations(q.Locations)
+
+				dmr, _err := lib.GetDistanceMatrix(apiKey, glocs)
+				if _err != nil {
+					glog.Errorf("main: cannot get distance matrix")
+					return _err
+				}
+
+				m, _err := lib.GoogleMapsMatrixToMatrix(dmr)
+				if _err != nil {
+					glog.Errorf("main: cannot convert Google Maps Matrix to Matrix")
+					return _err
+				}
+
+				var cost int
+				var path []int
+				size := len(q.Locations)
+				if size < heldKarpThreshold {
+					cost, path = bruteforce.TravellingSalesmanPath(m)
+				} else {
+					cost, path = heldkarp.TravellingSalesmanPath(m)
+				}
+				glog.Infof("main: cost: %d, path: %v", cost, path)
+
+				locationPath := lib.PathToLocationPath(q.Locations, path)
+				totalTime := int(lib.CalculateTotalTime(dmr, path).Seconds())
+
+				aids, _err := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
+					Status:        "success",
+					Path:          locationPath,
+					TotalDistance: cost,
+					TotalTime:     totalTime,
+				})
+				if _err != nil {
+					glog.Errorf("main: cannot set answer (success)")
+					return _err
+				}
+				glog.Infof("main: aid (success): %d", aids)
 			}
-
-			aidip, _err := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
-				Status: "in progress",
-			})
-			if _err != nil {
-				glog.Errorf("main: cannot set answer (in progress)")
-				return _err
-			}
-			glog.Infof("main: aid (in progress): %d", aidip)
-
-			glocs := lib.LocationsToGoogleMapsLocations(q.Locations)
-
-			dmr, _err := lib.GetDistanceMatrix(apiKey, glocs)
-			if _err != nil {
-				glog.Errorf("main: cannot get distance matrix")
-				return _err
-			}
-
-			m, _err := lib.GoogleMapsMatrixToMatrix(dmr)
-			if _err != nil {
-				glog.Errorf("main: cannot convert Google Maps Matrix to Matrix")
-				return _err
-			}
-
-			var cost int
-			var path []int
-			size := len(q.Locations)
-			if size < heldKarpThreshold {
-				cost, path = bruteforce.TravellingSalesmanPath(m)
-			} else {
-				cost, path = heldkarp.TravellingSalesmanPath(m)
-			}
-			glog.Infof("main: cost: %d, path: %v", cost, path)
-
-			locationPath := lib.PathToLocationPath(q.Locations, path)
-			totalTime := int(lib.CalculateTotalTime(dmr, path).Seconds())
-
-			aids, _err := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
-				Status:        "success",
-				Path:          locationPath,
-				TotalDistance: cost,
-				TotalTime:     totalTime,
-			})
-			if _err != nil {
-				glog.Errorf("main: cannot set answer (success)")
-				return _err
-			}
-			glog.Infof("main: aid (success): %d", aids)
-
-			return nil
 		})
 		if err != nil {
 			glog.Errorf("main: %#v", err)

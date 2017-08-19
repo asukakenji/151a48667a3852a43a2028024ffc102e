@@ -66,6 +66,38 @@ func (err NotFoundError) ErrorDetails() string {
 	)
 }
 
+type JobTooBigError struct {
+	cause error
+	hash  string
+}
+
+func NewJobTooBigError(cause error, hash string) JobTooBigError {
+	return JobTooBigError{cause, hash}
+}
+
+func (err JobTooBigError) Cause() error {
+	return err.cause
+}
+
+func (err JobTooBigError) Hash() string {
+	return err.hash
+}
+
+func (err JobTooBigError) Error() string {
+	return fmt.Sprintf(
+		"job too big error (%s)",
+		err.hash,
+	)
+}
+
+func (err JobTooBigError) ErrorDetails() string {
+	return fmt.Sprintf(
+		"JobTooBigError (%s): %#v",
+		err.hash,
+		err.cause,
+	)
+}
+
 type UnexpectedError struct {
 	cause error
 	hash  string
