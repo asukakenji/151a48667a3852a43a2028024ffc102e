@@ -108,22 +108,27 @@ func isLongitude(s string) bool {
 func LocationsFromJSON(r io.Reader) (locs Locations, err error) {
 	_err := json.NewDecoder(r).Decode(&locs)
 	if _err != nil {
-		return nil, JSONDecodeError{_err}
+		hash := NewToken()
+		return nil, NewJSONDecodeError(_err, hash)
 	}
 
 	if len(locs) < 2 {
-		return nil, InsufficientLocationCountError{locs}
+		hash := NewToken()
+		return nil, NewInsufficientLocationCountError(locs, hash)
 	}
 
 	for i, loc := range locs {
 		if len(loc) != 2 {
-			return nil, InvalidLocationError{locs, i}
+			hash := NewToken()
+			return nil, NewInvalidLocationError(locs, i, hash)
 		}
 		if !isLatitude(loc[0]) {
-			return nil, LatitudeError{locs, i}
+			hash := NewToken()
+			return nil, NewLatitudeError(locs, i, hash)
 		}
 		if !isLongitude(loc[1]) {
-			return nil, LongitudeError{locs, i}
+			hash := NewToken()
+			return nil, NewLongitudeError(locs, i, hash)
 		}
 	}
 	return locs, nil

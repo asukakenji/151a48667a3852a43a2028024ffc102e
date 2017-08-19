@@ -22,7 +22,8 @@ type Question struct {
 func QuestionFromJSON(r io.Reader) (q *Question, err error) {
 	_err := json.NewDecoder(r).Decode(q)
 	if _err != nil {
-		return nil, common.NewJSONDecodeError(_err)
+		hash := common.NewToken()
+		return nil, common.NewJSONDecodeError(_err, hash)
 	}
 	return q, nil
 }
@@ -30,7 +31,8 @@ func QuestionFromJSON(r io.Reader) (q *Question, err error) {
 func (q *Question) ToJSON(w io.Writer) error {
 	_err := json.NewEncoder(w).Encode(q)
 	if _err != nil {
-		return common.NewJSONEncodeError(_err)
+		hash := common.NewToken()
+		return common.NewJSONEncodeError(_err, hash)
 	}
 	return nil
 }

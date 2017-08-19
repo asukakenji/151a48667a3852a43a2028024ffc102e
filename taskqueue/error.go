@@ -35,16 +35,65 @@ func (err ConnectionError) ErrorDetails() string {
 }
 
 type NotFoundError struct {
+	cause error
+	hash  string
 }
 
-func NewNotFoundError() NotFoundError {
-	return NotFoundError{}
+func NewNotFoundError(cause error, hash string) NotFoundError {
+	return NotFoundError{cause, hash}
+}
+
+func (err NotFoundError) Cause() error {
+	return err.cause
+}
+
+func (err NotFoundError) Hash() string {
+	return err.hash
 }
 
 func (err NotFoundError) Error() string {
-	return ""
+	return fmt.Sprintf(
+		"not found error (%s)",
+		err.hash,
+	)
 }
 
 func (err NotFoundError) ErrorDetails() string {
-	return ""
+	return fmt.Sprintf(
+		"NotFoundError (%s): %#v",
+		err.hash,
+		err.cause,
+	)
+}
+
+type UnexpectedError struct {
+	cause error
+	hash  string
+}
+
+func NewUnexpectedError(cause error, hash string) UnexpectedError {
+	return UnexpectedError{cause, hash}
+}
+
+func (err UnexpectedError) Cause() error {
+	return err.cause
+}
+
+func (err UnexpectedError) Hash() string {
+	return err.hash
+}
+
+func (err UnexpectedError) Error() string {
+	return fmt.Sprintf(
+		"unexpected error (%s)",
+		err.hash,
+	)
+}
+
+func (err UnexpectedError) ErrorDetails() string {
+	return fmt.Sprintf(
+		"UnexpectedError (%s): %#v",
+		err.hash,
+		err.cause,
+	)
 }

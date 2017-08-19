@@ -17,6 +17,7 @@ is used for returning an internal error message for logging:
 	ErrorDetails() string
 */
 type MyError interface {
+	Hash() string
 	error
 	ErrorDetails() string
 }
@@ -41,6 +42,10 @@ func (err WrappedError) Cause() error {
 	return err.cause
 }
 
+func (err WrappedError) Hash() string {
+	return err.hash
+}
+
 func (err WrappedError) Error() string {
 	return fmt.Sprintf(
 		"internal server error (%s)",
@@ -50,7 +55,7 @@ func (err WrappedError) Error() string {
 
 func (err WrappedError) ErrorDetails() string {
 	return fmt.Sprintf(
-		"WrappedError (%s): %#v",
+		"[%s] WrappedError: %#v",
 		err.hash,
 		err.cause,
 	)
@@ -68,23 +73,32 @@ type Causer interface {
 // It implements the Causer interface.
 type JSONEncodeError struct {
 	cause error
+	hash  string
 }
 
-func NewJSONEncodeError(err error) JSONEncodeError {
-	return JSONEncodeError{err}
+func NewJSONEncodeError(err error, hash string) JSONEncodeError {
+	return JSONEncodeError{err, hash}
 }
 
 func (err JSONEncodeError) Cause() error {
 	return err.cause
 }
 
+func (err JSONEncodeError) Hash() string {
+	return err.hash
+}
+
 func (err JSONEncodeError) Error() string {
-	return "internal server error (JSONEncodeError)"
+	return fmt.Sprintf(
+		"internal server error (%s)",
+		err.hash,
+	)
 }
 
 func (err JSONEncodeError) ErrorDetails() string {
 	return fmt.Sprintf(
-		"JSONEncodeError: %#v",
+		"[%s] JSONEncodeError: %#v",
+		err.hash,
 		err.cause,
 	)
 }
@@ -94,23 +108,32 @@ func (err JSONEncodeError) ErrorDetails() string {
 // It implements the Causer interface.
 type JSONDecodeError struct {
 	cause error
+	hash  string
 }
 
-func NewJSONDecodeError(err error) JSONDecodeError {
-	return JSONDecodeError{err}
+func NewJSONDecodeError(err error, hash string) JSONDecodeError {
+	return JSONDecodeError{err, hash}
 }
 
 func (err JSONDecodeError) Cause() error {
 	return err.cause
 }
 
+func (err JSONDecodeError) Hash() string {
+	return err.hash
+}
+
 func (err JSONDecodeError) Error() string {
-	return "invalid JSON"
+	return fmt.Sprintf(
+		"invalid JSON (%s)",
+		err.hash,
+	)
 }
 
 func (err JSONDecodeError) ErrorDetails() string {
 	return fmt.Sprintf(
-		"JSONDecodeError: %#v",
+		"[%s] JSONDecodeError: %#v",
+		err.hash,
 		err.cause,
 	)
 }
@@ -127,22 +150,33 @@ type LocationsError interface {
 // It implements the LocationsError interface.
 type InsufficientLocationCountError struct {
 	locs Locations
+	hash string
+}
+
+func NewInsufficientLocationCountError(locs Locations, hash string) InsufficientLocationCountError {
+	return InsufficientLocationCountError{locs, hash}
 }
 
 func (err InsufficientLocationCountError) Locations() Locations {
 	return err.locs
 }
 
+func (err InsufficientLocationCountError) Hash() string {
+	return err.hash
+}
+
 func (err InsufficientLocationCountError) Error() string {
 	return fmt.Sprintf(
-		"insufficient number of locations: expected >= 2, got %d",
+		"insufficient number of locations: expected >= 2, got %d (%s)",
 		len(err.locs),
+		err.hash,
 	)
 }
 
 func (err InsufficientLocationCountError) ErrorDetails() string {
 	return fmt.Sprintf(
-		"InsufficientLocationCountError: %#v",
+		"[%s] InsufficientLocationCountError: %#v",
+		err.hash,
 		err.locs,
 	)
 }
@@ -153,6 +187,11 @@ func (err InsufficientLocationCountError) ErrorDetails() string {
 type InvalidLocationError struct {
 	locs  Locations
 	index int
+	hash  string
+}
+
+func NewInvalidLocationError(locs Locations, index int, hash string) InvalidLocationError {
+	return InvalidLocationError{locs, index, hash}
 }
 
 func (err InvalidLocationError) Locations() Locations {
@@ -163,19 +202,28 @@ func (err InvalidLocationError) Index() int {
 	return err.index
 }
 
+func (err InvalidLocationError) Hash() string {
+	return err.hash
+}
+
 func (err InvalidLocationError) Error() string {
 	if err.index == 0 {
-		return "invalid route start location"
+		return fmt.Sprintf(
+			"invalid route start location (%s)",
+			err.hash,
+		)
 	}
 	return fmt.Sprintf(
-		"invalid drop off location #%d",
+		"invalid drop off location #%d (%s)",
 		err.index,
+		err.hash,
 	)
 }
 
 func (err InvalidLocationError) ErrorDetails() string {
 	return fmt.Sprintf(
-		"InvalidLocationError: %#v",
+		"[%s] InvalidLocationError: %#v",
+		err.hash,
 		err.locs[err.index],
 	)
 }
@@ -186,6 +234,11 @@ func (err InvalidLocationError) ErrorDetails() string {
 type LatitudeError struct {
 	locs  Locations
 	index int
+	hash  string
+}
+
+func NewLatitudeError(locs Locations, index int, hash string) LatitudeError {
+	return LatitudeError{locs, index, hash}
 }
 
 func (err LatitudeError) Locations() Locations {
@@ -196,23 +249,30 @@ func (err LatitudeError) Index() int {
 	return err.index
 }
 
+func (err LatitudeError) Hash() string {
+	return err.hash
+}
+
 func (err LatitudeError) Error() string {
 	if err.index == 0 {
 		return fmt.Sprintf(
-			"invalid route start latitude: %q",
+			"invalid route start latitude: %q (%s)",
 			err.locs[err.index][0],
+			err.hash,
 		)
 	}
 	return fmt.Sprintf(
-		"invalid drop off latitude #%d: %q",
+		"invalid drop off latitude #%d: %q (%s)",
 		err.index,
 		err.locs[err.index][0],
+		err.hash,
 	)
 }
 
 func (err LatitudeError) ErrorDetails() string {
 	return fmt.Sprintf(
-		"LatitudeError: %#v",
+		"[%s] LatitudeError: %#v",
+		err.hash,
 		err.locs[err.index][0],
 	)
 }
@@ -223,6 +283,11 @@ func (err LatitudeError) ErrorDetails() string {
 type LongitudeError struct {
 	locs  Locations
 	index int
+	hash  string
+}
+
+func NewLongitudeError(locs Locations, index int, hash string) LongitudeError {
+	return LongitudeError{locs, index, hash}
 }
 
 func (err LongitudeError) Locations() Locations {
@@ -233,23 +298,30 @@ func (err LongitudeError) Index() int {
 	return err.index
 }
 
+func (err LongitudeError) Hash() string {
+	return err.hash
+}
+
 func (err LongitudeError) Error() string {
 	if err.index == 0 {
 		return fmt.Sprintf(
-			"invalid route start longitude: %q",
+			"invalid route start longitude: %q (%s)",
 			err.locs[err.index][1],
+			err.hash,
 		)
 	}
 	return fmt.Sprintf(
-		"invalid drop off longitude #%d: %q",
+		"invalid drop off longitude #%d: %q (%s)",
 		err.index,
 		err.locs[err.index][1],
+		err.hash,
 	)
 }
 
 func (err LongitudeError) ErrorDetails() string {
 	return fmt.Sprintf(
-		"LongitudeError: %#v",
+		"[%s] LongitudeError: %#v",
+		err.hash,
 		err.locs[err.index][1],
 	)
 }
@@ -258,26 +330,33 @@ func (err LongitudeError) ErrorDetails() string {
 // It implements the MyError interface.
 type InvalidTokenError struct {
 	token string
+	hash  string
 }
 
-func NewInvalidTokenError(token string) InvalidTokenError {
-	return InvalidTokenError{token}
+func NewInvalidTokenError(token, hash string) InvalidTokenError {
+	return InvalidTokenError{token, hash}
 }
 
 func (err InvalidTokenError) Token() string {
 	return err.token
 }
 
+func (err InvalidTokenError) Hash() string {
+	return err.hash
+}
+
 func (err InvalidTokenError) Error() string {
 	return fmt.Sprintf(
-		"invalid token: %q",
+		"invalid token: %q (%s)",
 		err.token,
+		err.hash,
 	)
 }
 
 func (err InvalidTokenError) ErrorDetails() string {
 	return fmt.Sprintf(
-		"InvalidTokenError: %#v",
+		"[%s] InvalidTokenError: %q",
+		err.hash,
 		err.token,
 	)
 }

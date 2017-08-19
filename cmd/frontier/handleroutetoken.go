@@ -29,7 +29,8 @@ func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
 		goto HandleError
 	} else if !common.IsToken(token) {
 		status = http.StatusBadRequest
-		err = common.NewInvalidTokenError(token)
+		hash := common.NewToken()
+		err = common.NewInvalidTokenError(token, hash)
 		goto HandleError
 	}
 

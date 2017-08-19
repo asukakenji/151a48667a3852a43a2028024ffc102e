@@ -65,6 +65,7 @@ func main() {
 			if _err != nil {
 				if _, ok := _err.(taskqueue.NotFoundError); !ok {
 					glog.Errorf("main: error occurred while getting answer")
+					return _err
 				}
 			}
 			glog.Infof("main: aidp: %d", aidp)
