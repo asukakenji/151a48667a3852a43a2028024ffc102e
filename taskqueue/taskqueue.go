@@ -72,6 +72,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/golang/glog"
 	"github.com/kr/beanstalk"
 )
@@ -81,12 +82,13 @@ const (
 	TimeForever = math.MaxUint32 * time.Second
 )
 
-func WithConnection(addr string, do func(*beanstalk.Conn) error) error {
+func WithConnection(addr string, do func(*Connection) error) error {
 	conn, err := beanstalk.Dial("tcp", addr)
 	if err != nil {
-		glog.Errorf("WithConnection: Dial error: %#v", err)
-		return err
+		hash := common.NewToken()
+		glog.Errorf("WithConnection: cannot dial (%s)", hash)
+		return NewConnectionError(err, hash)
 	}
 	defer conn.Close()
-	return do(conn)
+	return do(&Connection{conn})
 }

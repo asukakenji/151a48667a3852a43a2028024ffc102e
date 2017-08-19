@@ -9,9 +9,9 @@ import (
 	"github.com/kr/beanstalk"
 )
 
-func GetAnswer2(conn *beanstalk.Conn, token string) (id uint64, a *Answer, err error) {
+func GetAnswer2(conn *Connection, token string) (id uint64, a *Answer, err error) {
 	tube := beanstalk.Tube{
-		Conn: conn,
+		Conn: conn.Conn,
 		Name: token,
 	}
 
@@ -39,7 +39,7 @@ func GetAnswer2(conn *beanstalk.Conn, token string) (id uint64, a *Answer, err e
 	return id, a, nil
 }
 
-func GetAnswer1(conn *beanstalk.Conn, token string) (id uint64, dr *common.DrivingRoute, err error) {
+func GetAnswer1(conn *Connection, token string) (id uint64, dr *common.DrivingRoute, err error) {
 	id, a, err := GetAnswer2(conn, token)
 	if err != nil {
 		return 0, nil, err

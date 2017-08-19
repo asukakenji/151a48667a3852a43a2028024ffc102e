@@ -6,7 +6,12 @@ import (
 	"time"
 
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
+	"github.com/kr/beanstalk"
 )
+
+type Connection struct {
+	Conn *beanstalk.Conn
+}
 
 type Question struct {
 	Timestamp time.Time        `json:"t"`

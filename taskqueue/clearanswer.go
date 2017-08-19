@@ -8,9 +8,9 @@ import (
 	"github.com/kr/beanstalk"
 )
 
-func ClearAnswer(conn *beanstalk.Conn, token string) (id uint64, a *Answer, err error) {
+func ClearAnswer(conn *Connection, token string) (id uint64, a *Answer, err error) {
 	tube := beanstalk.Tube{
-		Conn: conn,
+		Conn: conn.Conn,
 		Name: token,
 	}
 
@@ -30,7 +30,7 @@ func ClearAnswer(conn *beanstalk.Conn, token string) (id uint64, a *Answer, err 
 		}
 		glog.Infof("ClearAnswer: Peek Ready: id: %d", id)
 
-		err = conn.Delete(
+		err = conn.Conn.Delete(
 			id, // id
 		)
 		if err != nil {

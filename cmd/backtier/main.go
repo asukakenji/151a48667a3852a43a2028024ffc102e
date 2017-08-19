@@ -11,7 +11,6 @@ import (
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/tsp/bruteforce"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/tsp/heldkarp"
 	"github.com/golang/glog"
-	"github.com/kr/beanstalk"
 )
 
 const (
@@ -46,7 +45,7 @@ func main() {
 		var qid uint64
 		var q *taskqueue.Question
 		var rc int
-		err := taskqueue.WithConnection(addr, func(conn *beanstalk.Conn) error {
+		err := taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) error {
 			var _err error
 			qid, q, _err = taskqueue.FetchQuestion(conn, timeLimit)
 			if _err != nil {
@@ -64,12 +63,8 @@ func main() {
 
 			aidp, a, _err := taskqueue.GetAnswer2(conn, q.Token)
 			if _err != nil {
-				if cerr, ok := _err.(beanstalk.ConnError); !ok {
+				if _, ok := _err.(taskqueue.NotFoundError); !ok {
 					glog.Errorf("main: error occurred while getting answer")
-					return _err
-				} else if cerr.Err != beanstalk.ErrNotFound {
-					glog.Errorf("main: error occurred while getting answer")
-					return _err
 				}
 			}
 			glog.Infof("main: aidp: %d", aidp)
@@ -123,7 +118,7 @@ func main() {
 			locationPath := lib.PathToLocationPath(q.Locations, path)
 			totalTime := int(lib.CalculateTotalTime(dmr, path).Seconds())
 
-			aids, _err := taskqueue.SetAnswer(conn, q.Token, qid, tc, &common.DrivingRoute{
+			aids, _err := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
 				Status:        "success",
 				Path:          locationPath,
 				TotalDistance: cost,
@@ -139,8 +134,8 @@ func main() {
 		})
 		if err != nil {
 			glog.Errorf("main: %#v", err)
-			err2 := taskqueue.WithConnection(addr, func(conn *beanstalk.Conn) error {
-				aidf, _err := taskqueue.SetAnswer(conn, q.Token, qid, tc, &common.DrivingRoute{
+			err2 := taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) error {
+				aidf, _err := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
 					Status: "failure",
 					Error:  err.Error(),
 				})

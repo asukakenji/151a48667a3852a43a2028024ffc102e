@@ -5,7 +5,6 @@ import (
 
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/taskqueue"
 	"github.com/golang/glog"
-	"github.com/kr/beanstalk"
 )
 
 func main() {
@@ -26,7 +25,7 @@ func main() {
 	addr := "127.0.0.1:11300" // TODO: Customize: addr
 
 	for {
-		err := taskqueue.WithConnection(addr, func(conn *beanstalk.Conn) error {
+		err := taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) error {
 			for {
 				gid, g, _err := taskqueue.ReserveGarbage(conn)
 				if _err != nil {

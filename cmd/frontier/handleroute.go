@@ -5,11 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/cmd/frontier/lib"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/taskqueue"
 	"github.com/golang/glog"
-	"github.com/kr/beanstalk"
 )
 
 // SubmitStartPointAndDropOffLocations deals with the request "POST /route".
@@ -31,9 +29,9 @@ func SubmitStartPointAndDropOffLocations(w http.ResponseWriter, req *http.Reques
 		goto HandleError
 	}
 
-	token = lib.NewToken()
+	token = common.NewToken()
 
-	err = taskqueue.WithConnection(addr, func(conn *beanstalk.Conn) error {
+	err = taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) error {
 		_id, _err := taskqueue.AddQuestion(conn, token, locs, timeLimit)
 		id = _id
 		return _err

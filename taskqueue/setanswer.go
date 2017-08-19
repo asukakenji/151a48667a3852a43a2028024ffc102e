@@ -11,7 +11,7 @@ import (
 	"github.com/kr/beanstalk"
 )
 
-func SetAnswer(conn *beanstalk.Conn, token string, qid uint64, rc int, dr *common.DrivingRoute) (id uint64, err error) {
+func SetAnswer(conn *Connection, token string, qid uint64, rc int, dr *common.DrivingRoute) (id uint64, err error) {
 	now := time.Now()
 	buf := new(bytes.Buffer)
 	err = json.NewEncoder(buf).Encode(Answer{
@@ -26,7 +26,7 @@ func SetAnswer(conn *beanstalk.Conn, token string, qid uint64, rc int, dr *commo
 	}
 
 	tube := beanstalk.Tube{
-		Conn: conn,
+		Conn: conn.Conn,
 		Name: token,
 	}
 	id, err = tube.Put(

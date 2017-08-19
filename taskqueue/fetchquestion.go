@@ -9,10 +9,10 @@ import (
 	"github.com/kr/beanstalk"
 )
 
-func FetchQuestion(conn *beanstalk.Conn, timeout time.Duration) (id uint64, q *Question, err error) {
+func FetchQuestion(conn *Connection, timeout time.Duration) (id uint64, q *Question, err error) {
 	for {
 		var body []byte
-		id, body, err = conn.Reserve(
+		id, body, err = conn.Conn.Reserve(
 			timeout, // timeout
 		)
 		if err != nil {

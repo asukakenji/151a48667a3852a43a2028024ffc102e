@@ -4,12 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/cmd/frontier/lib"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/taskqueue"
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
-	"github.com/kr/beanstalk"
 )
 
 // GetShortestDrivingRoute deals with the request "GET /route/{token}".
@@ -29,13 +27,13 @@ func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
 		status = http.StatusInternalServerError
 		err = common.WrapError(nil, "539cd7a5469b42ec1a53306df7fb2495")
 		goto HandleError
-	} else if !lib.IsToken(token) {
+	} else if !common.IsToken(token) {
 		status = http.StatusBadRequest
 		err = common.NewInvalidTokenError(token)
 		goto HandleError
 	}
 
-	err = taskqueue.WithConnection(addr, func(conn *beanstalk.Conn) error {
+	err = taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) error {
 		_id, _dr, _err := taskqueue.GetAnswer1(conn, token)
 		id, dr = _id, _dr
 		return _err

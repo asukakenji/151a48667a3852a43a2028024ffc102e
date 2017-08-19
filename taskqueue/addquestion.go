@@ -10,7 +10,7 @@ import (
 )
 
 // timeLimit = execution time limit
-func AddQuestion(conn *beanstalk.Conn, token string, locs common.Locations, timeLimit time.Duration) (id uint64, err error) {
+func AddQuestion(conn *Connection, token string, locs common.Locations, timeLimit time.Duration) (id uint64, err error) {
 	now := time.Now()
 	buf := new(bytes.Buffer)
 	q := Question{
@@ -24,7 +24,7 @@ func AddQuestion(conn *beanstalk.Conn, token string, locs common.Locations, time
 		return 0, err
 	}
 
-	id, err = conn.Put(
+	id, err = conn.Conn.Put(
 		buf.Bytes(),        // body
 		uint32(now.Unix()), // pri
 		time.Duration(0),   // delay: immediately ready
