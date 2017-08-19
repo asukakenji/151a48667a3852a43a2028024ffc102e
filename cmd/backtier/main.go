@@ -41,11 +41,11 @@ func main() {
 	addr := "127.0.0.1:11300"    // TODO: Customize: addr
 	timeLimit := 5 * time.Second // TODO: Customize: timeLimit
 	apiKey := os.Args[1]         // TODO: Customize: apiKey
-	maxTrialCount := 3           // TODO: Customize: maxTrialCount
+	maxRetryCount := 3           // TODO: Customize: maxRetryCount
 	for {
 		var qid uint64
 		var q *taskqueue.Question
-		var tc int
+		var rc int
 		err := taskqueue.WithConnection(addr, func(conn *beanstalk.Conn) error {
 			var _err error
 			qid, q, _err = taskqueue.FetchQuestion(conn, timeLimit)
@@ -80,14 +80,14 @@ func main() {
 					return lib.NewTokenCollisionError(q.Token, qid, a.QuestionID)
 				}
 
-				tc = a.TrialCount + 1
-				if tc == maxTrialCount {
-					glog.Errorf("main: trial count limit exceeded")
-					return lib.NewTrialCountLimitExceededError(q.Token, qid, maxTrialCount)
+				rc = a.RetryCount + 1
+				if rc == maxRetryCount {
+					glog.Errorf("main: retry count limit exceeded")
+					return lib.NewRetryCountLimitExceededError(q.Token, qid, maxRetryCount)
 				}
 			}
 
-			aidip, _err := taskqueue.SetAnswer(conn, q.Token, qid, tc, &common.DrivingRoute{
+			aidip, _err := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
 				Status: "in progress",
 			})
 			if _err != nil {

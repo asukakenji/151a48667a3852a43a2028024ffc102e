@@ -42,39 +42,39 @@ func (err TokenCollisionError) ErrorDetails() string {
 	)
 }
 
-type TrialCountLimitExceededError struct {
+type RetryCountLimitExceededError struct {
 	questionID    uint64
-	maxTrialCount int
+	maxRetryCount int
 	token         string
 }
 
-func NewTrialCountLimitExceededError(token string, questionID uint64, maxTrialCount int) TrialCountLimitExceededError {
-	return TrialCountLimitExceededError{questionID, maxTrialCount, token}
+func NewRetryCountLimitExceededError(token string, questionID uint64, maxRetryCount int) RetryCountLimitExceededError {
+	return RetryCountLimitExceededError{questionID, maxRetryCount, token}
 }
 
-func (err TrialCountLimitExceededError) QuestionID() uint64 {
+func (err RetryCountLimitExceededError) QuestionID() uint64 {
 	return err.questionID
 }
 
-func (err TrialCountLimitExceededError) MaxTrialCount() int {
-	return err.maxTrialCount
+func (err RetryCountLimitExceededError) MaxRetryCount() int {
+	return err.maxRetryCount
 }
 
-func (err TrialCountLimitExceededError) Token() string {
+func (err RetryCountLimitExceededError) Token() string {
 	return err.token
 }
 
-func (err TrialCountLimitExceededError) Error() string {
+func (err RetryCountLimitExceededError) Error() string {
 	return fmt.Sprintf(
-		"trial limit exceeded: %d",
-		err.maxTrialCount,
+		"retry limit exceeded: %d",
+		err.maxRetryCount,
 	)
 }
 
-func (err TrialCountLimitExceededError) ErrorDetails() string {
+func (err RetryCountLimitExceededError) ErrorDetails() string {
 	return fmt.Sprintf(
-		"TrialCountLimitExceededError: Token: %q, Question ID: %d, Max Trial Count: %d",
-		err.token, err.questionID, err.maxTrialCount,
+		"RetryCountLimitExceededError: Token: %q, Question ID: %d, Max Retry Count: %d",
+		err.token, err.questionID, err.maxRetryCount,
 	)
 }
 

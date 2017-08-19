@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/cmd/webtier2/lib"
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/cmd/backtier/lib"
 
 	"googlemaps.github.io/maps"
 )

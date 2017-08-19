@@ -3,12 +3,14 @@ package taskqueue
 import (
 	"encoding/json"
 	"io"
+	"time"
 
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 )
 
 type Question struct {
-	Token     string           `json:"t"`
+	Timestamp time.Time        `json:"t"`
+	Token     string           `json:"x"`
 	Locations common.Locations `json:"l"`
 }
 
@@ -29,7 +31,14 @@ func (q *Question) ToJSON(w io.Writer) error {
 }
 
 type Answer struct {
+	Timestamp    time.Time            `json:"t"`
 	QuestionID   uint64               `json:"q"`
-	TrialCount   int                  `json:"t"`
+	RetryCount   int                  `json:"r"`
 	DrivingRoute *common.DrivingRoute `json:"d"`
+}
+
+type Garbage struct {
+	Timestamp  time.Time `json:"t"`
+	Token      string    `json:"x"`
+	QuestionID uint64    `json:"q"`
 }

@@ -11,11 +11,13 @@ import (
 	"github.com/kr/beanstalk"
 )
 
-func SetAnswer(conn *beanstalk.Conn, token string, qid uint64, tc int, dr *common.DrivingRoute) (id uint64, err error) {
+func SetAnswer(conn *beanstalk.Conn, token string, qid uint64, rc int, dr *common.DrivingRoute) (id uint64, err error) {
+	now := time.Now()
 	buf := new(bytes.Buffer)
 	err = json.NewEncoder(buf).Encode(Answer{
+		Timestamp:    now,
 		QuestionID:   qid,
-		TrialCount:   tc,
+		RetryCount:   rc,
 		DrivingRoute: dr,
 	})
 	if err != nil {
@@ -28,10 +30,10 @@ func SetAnswer(conn *beanstalk.Conn, token string, qid uint64, tc int, dr *commo
 		Name: token,
 	}
 	id, err = tube.Put(
-		buf.Bytes(),                              // body
-		math.MaxUint32-uint32(time.Now().Unix()), // pri
-		time.Duration(0),                         // delay: immediately ready
-		time.Duration(0),                         // ttr: zero as answers are never reserved
+		buf.Bytes(),                       // body
+		math.MaxUint32-uint32(now.Unix()), // pri
+		time.Duration(0),                  // delay: immediately ready
+		time.Duration(0),                  // ttr: zero as answers are never reserved
 	)
 	if err != nil {
 		if cerr, ok := err.(beanstalk.ConnError); !ok {
