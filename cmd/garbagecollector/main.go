@@ -49,8 +49,11 @@ func main() {
 				// - time.Now()
 				glog.Infof("main: a.Timestamp: %d", a.Timestamp)
 
-				// TODO: Move the logic here
-				taskqueue.ClearAnswer(conn, token)
+				err2 = taskqueue.DeleteJob(conn, aid)
+				if err2 != nil {
+					// TODO: Handle error
+					return err2
+				}
 
 				q, err2 := taskqueue.GetQuestion(conn, g.QuestionID)
 				if err2 != nil {
@@ -63,7 +66,7 @@ func main() {
 				// - g.Timestamp
 				// - q.Timestamp
 				// - time.Now()
-				err2 = taskqueue.DeleteQuestion(conn, g.QuestionID)
+				err2 = taskqueue.DeleteJob(conn, g.QuestionID)
 				if err2 != nil {
 					glog.Errorf("[%s] main: cannot delete question", err2.Hash())
 					return err2

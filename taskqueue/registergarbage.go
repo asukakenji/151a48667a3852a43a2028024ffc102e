@@ -51,6 +51,6 @@ func RegisterGarbage(conn *Connection, token string, qid uint64, delay time.Dura
 		glog.Errorf("[%s] RegisterGarbage: Unknown ConnError", hash)
 		return 0, NewUnexpectedError(_err, hash)
 	}
-	glog.Infof("RegisterGarbage: token: %q, qid: %d, gid: %d", token, gid)
+	glog.Infof("RegisterGarbage: token: %q, qid: %d, gid: %d", token, qid, gid)
 	return gid, nil
 }
