@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/cmd/frontier/lib"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
@@ -12,9 +11,7 @@ import (
 )
 
 // SubmitStartPointAndDropOffLocations deals with the request "POST /route".
-func SubmitStartPointAndDropOffLocations(w http.ResponseWriter, req *http.Request) {
-	addr := "127.0.0.1:11300"    // TODO: Customize: addr
-	timeLimit := 5 * time.Second // TODO: Customize: timeLimit
+func SubmitStartPointAndDropOffLocations(config *Config, w http.ResponseWriter, req *http.Request) {
 	status := http.StatusOK
 	var token string
 	var id uint64
@@ -32,8 +29,8 @@ func SubmitStartPointAndDropOffLocations(w http.ResponseWriter, req *http.Reques
 
 	token = common.NewToken()
 
-	err = taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.Error {
-		_id, _err := taskqueue.AddQuestion(conn, token, locs, timeLimit)
+	err = taskqueue.WithConnection(config.TaskQueueAddress, func(conn *taskqueue.Connection) common.Error {
+		_id, _err := taskqueue.AddQuestion(conn, token, locs, config.TimeLimitForFindingAnswer)
 		id = _id
 		return _err
 	})

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"os"
 	"time"
@@ -12,6 +13,31 @@ import (
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/tsp/heldkarp"
 	"github.com/golang/glog"
 )
+
+type Config struct {
+	MapProviderAPIKey               string        `json:"map_provider_api_key"`
+	TaskQueueAddress                string        `json:"task_queue_address"`                   // Default: "127.0.0.1:11300"
+	RetryCountLimitForFindingAnswer int           `json:"retry_count_limit_for_finding_answer"` // Default: 3
+	TimeWaitedBeforeBecomingGarbage time.Duration `json:"time_waited_before_becoming_garbage"`  // Default: 10 * time.Minute
+	TimeLimitForRemovingGarbage     time.Duration `json:"time_limit_for_removing_garbage"`      // Default: 1 * time.Minute
+}
+
+func ReadConfig() *Config {
+	file, err := os.Open("backtier.json")
+	if err != nil {
+		glog.Fatalf(`Cannot open "backtier.json": %s`, err.Error())
+		return nil
+	}
+	defer file.Close()
+
+	var config *Config
+	err = json.NewDecoder(file).Decode(config)
+	if err != nil {
+		glog.Fatalf(`Failed to read "backtier.json: %s"`, err.Error())
+		return nil
+	}
+	return config
+}
 
 const (
 	// heldKarpThreshold is determined by benchmarks.
@@ -37,16 +63,14 @@ func main() {
 		flag.Set("logtostderr", "true")
 	}
 
-	addr := "127.0.0.1:11300" // TODO: Customize: addr
-	apiKey := os.Args[1]      // TODO: Customize: apiKey
-	maxRetryCount := 3        // TODO: Customize: maxRetryCount
-	delay := 10 * time.Minute // TODO: Customize: delay
-	ttr := 1 * time.Minute    // TODO: Customize: delay
+	// Read the config file
+	config := ReadConfig()
+
 	for {
 		var qid uint64
 		var q *taskqueue.Question
 		var rc int
-		err := taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.Error {
+		err := taskqueue.WithConnection(config.TaskQueueAddress, func(conn *taskqueue.Connection) common.Error {
 			var err2 common.Error
 			for {
 				qid, q, err2 = taskqueue.FetchQuestion(conn)
@@ -56,7 +80,13 @@ func main() {
 				}
 				glog.Infof("main: qid: %d", qid)
 
-				gid, err2 := taskqueue.RegisterGarbage(conn, q.Token, qid, delay, ttr)
+				gid, err2 := taskqueue.RegisterGarbage(
+					conn,
+					q.Token,
+					qid,
+					config.TimeWaitedBeforeBecomingGarbage,
+					config.TimeLimitForRemovingGarbage,
+				)
 				if err2 != nil {
 					glog.Errorf("[%s] main: cannot register garbage", err2.Hash())
 					return err2
@@ -80,10 +110,10 @@ func main() {
 					}
 
 					rc = a.RetryCount + 1
-					if rc == maxRetryCount {
+					if rc == config.RetryCountLimitForFindingAnswer {
 						hash := common.NewToken()
 						glog.Errorf("[%s] main: retry count limit exceeded", hash)
-						return lib.NewRetryCountLimitExceededError(q.Token, qid, maxRetryCount, hash)
+						return lib.NewRetryCountLimitExceededError(q.Token, qid, rc, hash)
 					}
 				}
 
@@ -98,7 +128,7 @@ func main() {
 
 				glocs := lib.LocationsToGoogleMapsLocations(q.Locations)
 
-				resp, err2 := lib.GetDistanceMatrix(apiKey, glocs)
+				resp, err2 := lib.GetDistanceMatrix(config.MapProviderAPIKey, glocs)
 				if err2 != nil {
 					glog.Errorf("[%s] main: cannot get distance matrix", err2.Hash())
 					return err2
@@ -138,7 +168,7 @@ func main() {
 		})
 		if err != nil {
 			glog.Errorf("[%s] main: %#v", err.Hash(), err)
-			taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.Error {
+			taskqueue.WithConnection(config.TaskQueueAddress, func(conn *taskqueue.Connection) common.Error {
 				aidf, err2 := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
 					Status: "failure",
 					Error:  err.Error(),

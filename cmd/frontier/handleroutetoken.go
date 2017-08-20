@@ -11,8 +11,7 @@ import (
 )
 
 // GetShortestDrivingRoute deals with the request "GET /route/{token}".
-func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
-	addr := "127.0.0.1:11300" // TODO: Customize: addr
+func GetShortestDrivingRoute(config *Config, w http.ResponseWriter, req *http.Request) {
 	status := http.StatusOK
 	var id uint64
 	var dr *common.DrivingRoute
@@ -34,7 +33,7 @@ func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
 		goto HandleError
 	}
 
-	err = taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.Error {
+	err = taskqueue.WithConnection(config.TaskQueueAddress, func(conn *taskqueue.Connection) common.Error {
 		_id, _dr, _err := taskqueue.GetAnswer1(conn, token)
 		id, dr = _id, _dr
 		return _err

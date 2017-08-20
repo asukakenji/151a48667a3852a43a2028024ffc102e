@@ -1,12 +1,35 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
+	"os"
 
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/taskqueue"
 	"github.com/golang/glog"
 )
+
+type Config struct {
+	TaskQueueAddress string `json:"task_queue_address"` // Default: "127.0.0.1:11300"
+}
+
+func ReadConfig() *Config {
+	file, err := os.Open("garbagecollector.json")
+	if err != nil {
+		glog.Fatalf(`Cannot open "garbagecollector.json": %s`, err.Error())
+		return nil
+	}
+	defer file.Close()
+
+	var config *Config
+	err = json.NewDecoder(file).Decode(config)
+	if err != nil {
+		glog.Fatalf(`Failed to read "garbagecollector.json: %s"`, err.Error())
+		return nil
+	}
+	return config
+}
 
 func main() {
 	// Check whether "-logtostderr=true" or "-logtostderr=false" is provided in
@@ -23,10 +46,11 @@ func main() {
 		flag.Set("logtostderr", "true")
 	}
 
-	addr := "127.0.0.1:11300" // TODO: Customize: addr
+	// Read the config file
+	config := ReadConfig()
 
 	for {
-		err := taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.Error {
+		err := taskqueue.WithConnection(config.TaskQueueAddress, func(conn *taskqueue.Connection) common.Error {
 			for {
 				gid, g, err2 := taskqueue.FetchGarbage(conn)
 				if err2 != nil {
@@ -51,7 +75,7 @@ func main() {
 
 				err2 = taskqueue.DeleteJob(conn, aid)
 				if err2 != nil {
-					// TODO: Handle error
+					glog.Errorf("[%s] main: cannot delete answer", err2.Hash())
 					return err2
 				}
 
@@ -69,6 +93,12 @@ func main() {
 				err2 = taskqueue.DeleteJob(conn, g.QuestionID)
 				if err2 != nil {
 					glog.Errorf("[%s] main: cannot delete question", err2.Hash())
+					return err2
+				}
+
+				err2 = taskqueue.DeleteJob(conn, gid)
+				if err2 != nil {
+					glog.Errorf("[%s] main: connot delete garbage", err2.Hash())
 					return err2
 				}
 			}
