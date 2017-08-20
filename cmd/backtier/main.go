@@ -137,7 +137,7 @@ func main() {
 			}
 		})
 		if err != nil {
-			glog.Errorf("main: %#v", err)
+			glog.Errorf("[%s] main: %#v", err.Hash(), err)
 			taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.Error {
 				aidf, err2 := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
 					Status: "failure",

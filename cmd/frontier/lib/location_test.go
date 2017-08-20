@@ -130,7 +130,7 @@ func TestLocationFromJSON(t *testing.T) {
 	cases := []struct {
 		s               string
 		expectedLocs    common.Locations
-		expectedErrType error
+		expectedErrType common.Error
 	}{
 		{`{}`, nil, common.JSONDecodeError{}},
 		{`[]`, nil, InsufficientLocationCountError{}},

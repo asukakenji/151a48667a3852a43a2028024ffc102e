@@ -72,7 +72,7 @@ func isLongitude(s string) bool {
 
 // LocationsFromJSON reads from r, parses the content as JSON, and returns the
 // Locations value.
-func LocationsFromJSON(r io.Reader) (locs common.Locations, err error) {
+func LocationsFromJSON(r io.Reader) (locs common.Locations, err common.Error) {
 	_err := json.NewDecoder(r).Decode(&locs)
 	if _err != nil {
 		hash := common.NewToken()

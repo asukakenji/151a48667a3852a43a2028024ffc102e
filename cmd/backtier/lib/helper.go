@@ -86,7 +86,9 @@ func GoogleMapsMatrixToMatrix(resp *maps.DistanceMatrixResponse) (matrix.Matrix,
 					glog.Errorf("[%s] GoogleMapsMatrixToMatrix: ZERO_RESULTS", hash)
 					return nil, NewRouteNotFoundError(resp, r, c, hash)
 				default:
-					return nil, common.WrapError(fmt.Errorf("Unknown error: Status: %q", status), "f8de639fab2bc7ab65c3153df6b8ee9e")
+					fixedHash := "f8de639fab2bc7ab65c3153df6b8ee9e"
+					glog.Errorf("[%s] GoogleMapsMatrixToMatrix: Unknown error: Status: %q", fixedHash, status)
+					return nil, common.WrapError(fmt.Errorf("Unknown error: Status: %q", status), fixedHash)
 				}
 			}
 			if r == c {

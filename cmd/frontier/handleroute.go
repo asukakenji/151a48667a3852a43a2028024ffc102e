@@ -18,7 +18,7 @@ func SubmitStartPointAndDropOffLocations(w http.ResponseWriter, req *http.Reques
 	status := http.StatusOK
 	var token string
 	var id uint64
-	var err error
+	var err common.Error
 
 	// --- Copied from http.Request.Body ---
 	// For server requests the Request Body is always non-nil but will return
@@ -51,12 +51,7 @@ func SubmitStartPointAndDropOffLocations(w http.ResponseWriter, req *http.Reques
 	return
 
 HandleError:
-	if myerr, ok := err.(common.Error); ok {
-		glog.Errorf("SubmitStartPointAndDropOffLocations: %s", myerr.ErrorDetails())
-	} else {
-		glog.Errorf("SubmitStartPointAndDropOffLocations: type assertion failed for error %#v", err)
-		status = http.StatusInternalServerError
-	}
+	glog.Errorf("[%s] SubmitStartPointAndDropOffLocations: %s", err.Hash(), err.ErrorDetails())
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(struct {

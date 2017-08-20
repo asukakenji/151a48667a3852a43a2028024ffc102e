@@ -19,14 +19,15 @@ func GetAnswer2(conn *Connection, token string) (id uint64, a *Answer, err commo
 	var body []byte
 	id, body, _err := tube.PeekReady()
 	if _err != nil {
+		hash := common.NewToken()
 		if cerr, ok := _err.(beanstalk.ConnError); !ok {
-			glog.Errorf("GetAnswer: Non-ConnError: %#v", err)
+			glog.Errorf("[%s] GetAnswer: Non-ConnError", hash)
 			return 0, nil, err
 		} else if cerr.Err == beanstalk.ErrNotFound {
-			glog.Infof("GetAnswer: Not found")
+			glog.Infof("[%s] GetAnswer: Not found", hash)
 			return 0, nil, err
 		}
-		glog.Errorf("GetAnswer: Unknown error: %#v", err)
+		glog.Errorf("[%s] GetAnswer: Unknown error", hash)
 		return 0, nil, err
 	}
 	glog.Infof("GetAnswer: id: %d", id)

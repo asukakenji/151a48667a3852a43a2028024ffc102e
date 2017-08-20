@@ -38,15 +38,15 @@ func (err TokenCollisionError) Token() string {
 
 func (err TokenCollisionError) Error() string {
 	return fmt.Sprintf(
-		"token collision: %q",
-		err.token,
+		"token collision: %q (%s)",
+		err.token, err.Hash(),
 	)
 }
 
 func (err TokenCollisionError) ErrorDetails() string {
 	return fmt.Sprintf(
-		"TokenCollisionError: Token: %s, New Question ID: %d, Old Question ID: %d",
-		err.token, err.newQuestionID, err.oldQuestionID,
+		"[%s] TokenCollisionError: Token: %s, New Question ID: %d, Old Question ID: %d",
+		err.Hash(), err.token, err.newQuestionID, err.oldQuestionID,
 	)
 }
 
@@ -80,15 +80,15 @@ func (err RetryCountLimitExceededError) Token() string {
 
 func (err RetryCountLimitExceededError) Error() string {
 	return fmt.Sprintf(
-		"retry limit exceeded: %d",
-		err.maxRetryCount,
+		"retry limit exceeded: %d (%s)",
+		err.maxRetryCount, err.Hash(),
 	)
 }
 
 func (err RetryCountLimitExceededError) ErrorDetails() string {
 	return fmt.Sprintf(
-		"RetryCountLimitExceededError: Token: %q, Question ID: %d, Max Retry Count: %d",
-		err.token, err.questionID, err.maxRetryCount,
+		"[%s] RetryCountLimitExceededError: Token: %q, Question ID: %d, Max Retry Count: %d",
+		err.Hash(), err.token, err.questionID, err.maxRetryCount,
 	)
 }
 
@@ -122,16 +122,17 @@ func (err LocationNotFoundError) Col() int {
 
 func (err LocationNotFoundError) Error() string {
 	return fmt.Sprintf(
-		"location not found: %q or %q",
+		"location not found: %q or %q (%s)",
 		err.resp.OriginAddresses[err.row],
 		err.resp.OriginAddresses[err.col],
+		err.Hash(),
 	)
 }
 
 func (err LocationNotFoundError) ErrorDetails() string {
 	return fmt.Sprintf(
-		"LocationNotFoundError (%d, %d): %#v",
-		err.row, err.col, err.resp,
+		"[%s] LocationNotFoundError (%d, %d): %#v",
+		err.Hash(), err.row, err.col, err.resp,
 	)
 }
 
@@ -165,16 +166,17 @@ func (err RouteNotFoundError) Col() int {
 
 func (err RouteNotFoundError) Error() string {
 	return fmt.Sprintf(
-		"route not found: from %q to %q",
+		"route not found: from %q to %q (%s)",
 		err.resp.OriginAddresses[err.row],
 		err.resp.OriginAddresses[err.col],
+		err.Hash(),
 	)
 }
 
 func (err RouteNotFoundError) ErrorDetails() string {
 	return fmt.Sprintf(
-		"RouteNotFoundError (%d, %d): %#v",
-		err.row, err.col, err.resp,
+		"[%s] RouteNotFoundError (%d, %d): %#v",
+		err.Hash(), err.row, err.col, err.resp,
 	)
 }
 
@@ -199,7 +201,7 @@ func (err ConnectionError) Error() string {
 
 func (err ConnectionError) ErrorDetails() string {
 	return fmt.Sprintf(
-		"ConnectionError (%s): %#v",
+		"[%s] ConnectionError: %#v",
 		err.Hash(),
 		err.Cause(),
 	)
@@ -226,7 +228,7 @@ func (err ExternalAPIError) Error() string {
 
 func (err ExternalAPIError) ErrorDetails() string {
 	return fmt.Sprintf(
-		"ExternalAPIError (%s): %#v",
+		"[%s] ExternalAPIError: %#v",
 		err.Hash(),
 		err.Cause(),
 	)

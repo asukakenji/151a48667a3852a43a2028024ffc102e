@@ -28,18 +28,18 @@ func main() {
 	for {
 		err := taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.Error {
 			for {
-				gid, g, _err := taskqueue.FetchGarbage(conn)
-				if _err != nil {
-					glog.Errorf("main: cannot reserve garbage")
-					return _err
+				gid, g, err2 := taskqueue.FetchGarbage(conn)
+				if err2 != nil {
+					glog.Errorf("[%s] main: cannot reserve garbage", err2.Hash())
+					return err2
 				}
 				glog.Infof("gid: %d", gid)
 
 				token := g.Token
-				aid, a, _err := taskqueue.GetAnswer2(conn, token)
-				if _err != nil {
-					glog.Errorf("main: cannot get answer")
-					return _err
+				aid, a, err2 := taskqueue.GetAnswer2(conn, token)
+				if err2 != nil {
+					glog.Errorf("[%s] main: cannot get answer", err2.Hash())
+					return err2
 				}
 				glog.Infof("aid: %d", aid)
 
@@ -52,10 +52,10 @@ func main() {
 				// TODO: Move the logic here
 				taskqueue.ClearAnswer(conn, token)
 
-				q, _err := taskqueue.GetQuestion(conn, g.QuestionID)
-				if _err != nil {
-					glog.Errorf("main: cannot get question")
-					return _err
+				q, err2 := taskqueue.GetQuestion(conn, g.QuestionID)
+				if err2 != nil {
+					glog.Errorf("[%s] main: cannot get question", err2.Hash())
+					return err2
 				}
 				glog.Infof("main: q.Timestamp: %d", q.Timestamp)
 
@@ -63,15 +63,15 @@ func main() {
 				// - g.Timestamp
 				// - q.Timestamp
 				// - time.Now()
-				_err = taskqueue.DeleteQuestion(conn, g.QuestionID)
-				if _err != nil {
-					glog.Errorf("main: cannot delete question")
-					return _err
+				err2 = taskqueue.DeleteQuestion(conn, g.QuestionID)
+				if err2 != nil {
+					glog.Errorf("[%s] main: cannot delete question", err2.Hash())
+					return err2
 				}
 			}
 		})
 		if err != nil {
-			glog.Errorf("%v", err)
+			glog.Errorf("[%s] main: %v", err.Hash(), err)
 		}
 	}
 }

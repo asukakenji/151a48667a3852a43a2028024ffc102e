@@ -67,6 +67,37 @@ func TestLocationsToGoogleMapsLocations(t *testing.T) {
 	}
 }
 
+func TestPathToLocationPath(t *testing.T) {
+	cases := []struct {
+		locs     common.Locations
+		path     []int
+		expected common.Locations
+	}{
+		{
+			common.Locations{
+				{"22.372081", "114.107877"},
+				{"22.284419", "114.159510"},
+				{"22.326442", "114.167811"},
+			},
+			[]int{0, 2, 1},
+			common.Locations{
+				{"22.372081", "114.107877"},
+				{"22.326442", "114.167811"},
+				{"22.284419", "114.159510"},
+			},
+		},
+	}
+	for _, c := range cases {
+		got := PathToLocationPath(c.locs, c.path)
+		if !reflect.DeepEqual(got, c.expected) {
+			t.Errorf(
+				"PathToLocationPath(%v, %v) = %v, expected %v",
+				c.locs, c.path, got, c.expected,
+			)
+		}
+	}
+}
+
 func TestGoogleMapsMatrixToMatrix(t *testing.T) {
 	cases := []struct {
 		resp            *maps.DistanceMatrixResponse

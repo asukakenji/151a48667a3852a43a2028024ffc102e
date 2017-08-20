@@ -16,7 +16,7 @@ func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
 	status := http.StatusOK
 	var id uint64
 	var dr *common.DrivingRoute
-	var err error
+	var err common.Error
 
 	vars := mux.Vars(req)
 	token, ok := vars["token"]
@@ -51,12 +51,7 @@ func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
 	return
 
 HandleError:
-	if myerr, ok := err.(common.Error); ok {
-		glog.Errorf("GetShortestDrivingRoute: %s", myerr.ErrorDetails())
-	} else {
-		glog.Errorf("GetShortestDrivingRoute: type assertion failed for error %#v", err)
-		status = http.StatusInternalServerError
-	}
+	glog.Errorf("[%s] GetShortestDrivingRoute: %s", err.Hash(), err.ErrorDetails())
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(struct {

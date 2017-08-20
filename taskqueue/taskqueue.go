@@ -86,7 +86,7 @@ func WithConnection(addr string, do func(*Connection) common.Error) common.Error
 	conn, err := beanstalk.Dial("tcp", addr)
 	if err != nil {
 		hash := common.NewToken()
-		glog.Errorf("WithConnection: cannot dial (%s)", hash)
+		glog.Errorf("[%s] WithConnection: cannot dial", hash)
 		return NewConnectionError(err, hash)
 	}
 	defer conn.Close()
