@@ -4,16 +4,17 @@ import (
 	"context"
 
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
+	"github.com/golang/glog"
 
 	"googlemaps.github.io/maps"
 )
 
-// TODO: Error handling not yet updated
-func GetDistanceMatrix(apiKey string, glocs []string) (*maps.DistanceMatrixResponse, common.MyError) {
-	c, err := maps.NewClient(maps.WithAPIKey(apiKey))
-	if err != nil {
-		//TODO: return nil, err
-		return nil, nil
+func GetDistanceMatrix(apiKey string, glocs []string) (resp *maps.DistanceMatrixResponse, err common.Error) {
+	c, _err := maps.NewClient(maps.WithAPIKey(apiKey))
+	if _err != nil {
+		hash := common.NewToken()
+		glog.Errorf("[%s] GetDistanceMatrix: NewClient()", hash)
+		return nil, NewConnectionError(_err, hash)
 	}
 
 	ctx := context.Background()
@@ -30,10 +31,11 @@ func GetDistanceMatrix(apiKey string, glocs []string) (*maps.DistanceMatrixRespo
 		TransitMode:              []maps.TransitMode(nil),
 		TransitRoutingPreference: maps.TransitRoutingPreference(""),
 	}
-	resp, err := c.DistanceMatrix(ctx, r)
-	if err != nil {
-		//TODO: return nil, err
-		return nil, nil
+	resp, _err = c.DistanceMatrix(ctx, r)
+	if _err != nil {
+		hash := common.NewToken()
+		glog.Errorf("[%s] GetDistanceMatrix: DistanceMatrix()", hash)
+		return nil, NewExternalAPIError(_err, hash)
 	}
 
 	return resp, nil

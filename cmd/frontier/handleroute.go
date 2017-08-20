@@ -32,7 +32,7 @@ func SubmitStartPointAndDropOffLocations(w http.ResponseWriter, req *http.Reques
 
 	token = common.NewToken()
 
-	err = taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.MyError {
+	err = taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.Error {
 		_id, _err := taskqueue.AddQuestion(conn, token, locs, timeLimit)
 		id = _id
 		return _err
@@ -51,7 +51,7 @@ func SubmitStartPointAndDropOffLocations(w http.ResponseWriter, req *http.Reques
 	return
 
 HandleError:
-	if myerr, ok := err.(common.MyError); ok {
+	if myerr, ok := err.(common.Error); ok {
 		glog.Errorf("SubmitStartPointAndDropOffLocations: %s", myerr.ErrorDetails())
 	} else {
 		glog.Errorf("SubmitStartPointAndDropOffLocations: type assertion failed for error %#v", err)

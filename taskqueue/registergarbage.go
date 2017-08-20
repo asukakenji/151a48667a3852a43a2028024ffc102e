@@ -8,7 +8,7 @@ import (
 	"github.com/kr/beanstalk"
 )
 
-func RegisterGarbage(conn *Connection, token string, qid uint64, delay time.Duration, ttr time.Duration) (gid uint64, err common.MyError) {
+func RegisterGarbage(conn *Connection, token string, qid uint64, delay time.Duration, ttr time.Duration) (gid uint64, err common.Error) {
 	now := time.Now()
 	g, err := Garbage{
 		Timestamp:  now,

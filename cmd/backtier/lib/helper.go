@@ -7,6 +7,7 @@ import (
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/constant"
 	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/matrix"
+	"github.com/golang/glog"
 	"googlemaps.github.io/maps"
 )
 
@@ -62,27 +63,28 @@ The maps.DistanceMatrixRequest type is equivalent to the following:
 	}
 
 The value m.Get(r, c) in the output m refers to the field
-dmr.Rows[r].Elements[c].Distance.Meters in the input dmr,
+resp.Rows[r].Elements[c].Distance.Meters in the input resp,
 except when r == c, where m.Get(r, c) equals constant.Infinity
 to fit the Travelling Salesman problem.
 */
-func GoogleMapsMatrixToMatrix(dmr *maps.DistanceMatrixResponse) (matrix.Matrix, common.MyError) {
-	// TODO: Error handling not yet updated
-	if dmr == nil {
+func GoogleMapsMatrixToMatrix(resp *maps.DistanceMatrixResponse) (matrix.Matrix, common.Error) {
+	if resp == nil {
 		return matrix.NewSquareMatrix([][]int{}), nil
 	}
-	m := make([][]int, len(dmr.Rows))
-	for r, row := range dmr.Rows {
+	m := make([][]int, len(resp.Rows))
+	for r, row := range resp.Rows {
 		m[r] = make([]int, len(row.Elements))
 		for c, element := range row.Elements {
 			if element.Status != "OK" {
 				switch status := element.Status; status {
 				case "NOT_FOUND":
-					//TODO: return nil, LocationNotFoundError{dmr, r, c}
-					return nil, nil
+					hash := common.NewToken()
+					glog.Errorf("[%s] GoogleMapsMatrixToMatrix: NOT_FOUND", hash)
+					return nil, NewLocationNotFoundError(resp, r, c, hash)
 				case "ZERO_RESULTS":
-					//TODO: return nil, RouteNotFoundError{dmr, r, c}
-					return nil, nil
+					hash := common.NewToken()
+					glog.Errorf("[%s] GoogleMapsMatrixToMatrix: ZERO_RESULTS", hash)
+					return nil, NewRouteNotFoundError(resp, r, c, hash)
 				default:
 					return nil, common.WrapError(fmt.Errorf("Unknown error: Status: %q", status), "f8de639fab2bc7ab65c3153df6b8ee9e")
 				}
@@ -105,14 +107,14 @@ from the information retrieved from Google Maps API.
 It takes a *maps.DistanceMatrixResponse value and a path as input,
 and returns the estimated total time needed as output.
 The field used to calculate the total time is
-dmr.Rows[from].Elements[to].Duration,
+resp.Rows[from].Elements[to].Duration,
 where from and to are the indices of the locations.
 */
-func CalculateTotalTime(dmr *maps.DistanceMatrixResponse, path []int) time.Duration {
+func CalculateTotalTime(resp *maps.DistanceMatrixResponse, path []int) time.Duration {
 	totalTime := time.Duration(0)
 	size := len(path)
 	for i := 1; i < size; i++ {
-		totalTime += dmr.Rows[path[i-1]].Elements[path[i]].Duration
+		totalTime += resp.Rows[path[i-1]].Elements[path[i]].Duration
 	}
 	return totalTime
 }

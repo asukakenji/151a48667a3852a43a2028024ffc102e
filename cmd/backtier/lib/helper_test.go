@@ -69,7 +69,7 @@ func TestLocationsToGoogleMapsLocations(t *testing.T) {
 
 func TestGoogleMapsMatrixToMatrix(t *testing.T) {
 	cases := []struct {
-		dmr             *maps.DistanceMatrixResponse
+		resp            *maps.DistanceMatrixResponse
 		expectedM       matrix.Matrix
 		expectedErrType error
 	}{
@@ -79,7 +79,7 @@ func TestGoogleMapsMatrixToMatrix(t *testing.T) {
 			nil,
 		},
 		{
-			dmr1,
+			resp1,
 			matrix.NewSquareMatrix([][]int{
 				{constant.Infinity, 15518, 9667},
 				{15223, constant.Infinity, 8333},
@@ -88,27 +88,27 @@ func TestGoogleMapsMatrixToMatrix(t *testing.T) {
 			nil,
 		},
 		{
-			dmr2,
+			resp2,
 			nil,
 			RouteNotFoundError{},
 		},
 		{
-			dmr3,
+			resp3,
 			nil,
 			LocationNotFoundError{},
 		},
 		{
-			dmrX,
+			respX,
 			nil,
 			common.WrappedError{},
 		},
 	}
 	for _, c := range cases {
-		gotM, gotErr := GoogleMapsMatrixToMatrix(c.dmr)
+		gotM, gotErr := GoogleMapsMatrixToMatrix(c.resp)
 		if !reflect.DeepEqual(gotM, c.expectedM) || reflect.TypeOf(gotErr) != reflect.TypeOf(c.expectedErrType) {
 			t.Errorf(
 				"GoogleMapsMatrixToMatrix(%v) = (%v, %T), expected (%v, %T)",
-				c.dmr, gotM, gotErr, c.expectedM, c.expectedErrType,
+				c.resp, gotM, gotErr, c.expectedM, c.expectedErrType,
 			)
 		}
 	}
@@ -116,19 +116,19 @@ func TestGoogleMapsMatrixToMatrix(t *testing.T) {
 
 func TestCalculateTotalTime(t *testing.T) {
 	cases := []struct {
-		dmr      *maps.DistanceMatrixResponse
+		resp     *maps.DistanceMatrixResponse
 		path     []int
 		expected time.Duration
 	}{
 		{nil, nil, 0},
-		{dmr1, []int{0, 2, 1}, 1753000000000},
+		{resp1, []int{0, 2, 1}, 1753000000000},
 	}
 	for _, c := range cases {
-		got := CalculateTotalTime(c.dmr, c.path)
+		got := CalculateTotalTime(c.resp, c.path)
 		if got != c.expected {
 			t.Errorf(
 				"CalculateTotalTime(%v, %v) = %d, expected %d",
-				c.dmr, c.path, got, c.expected,
+				c.resp, c.path, got, c.expected,
 			)
 		}
 	}

@@ -1,14 +1,13 @@
 package taskqueue
 
 import (
-	"bytes"
-	"encoding/json"
-
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
 	"github.com/golang/glog"
 	"github.com/kr/beanstalk"
 )
 
-func ClearAnswer(conn *Connection, token string) (id uint64, a *Answer, err error) {
+// TODO: Error handling not yet updated
+func ClearAnswer(conn *Connection, token string) (id uint64, a *Answer, err common.Error) {
 	tube := beanstalk.Tube{
 		Conn: conn.Conn,
 		Name: token,
@@ -17,9 +16,9 @@ func ClearAnswer(conn *Connection, token string) (id uint64, a *Answer, err erro
 	var lastBody []byte
 	for {
 		var body []byte
-		id, body, err = tube.PeekReady()
+		id, body, _err := tube.PeekReady()
 		if err != nil {
-			if cerr, ok := err.(beanstalk.ConnError); !ok {
+			if cerr, ok := _err.(beanstalk.ConnError); !ok {
 				glog.Errorf("ClearAnswer: Non-ConnError: %#v", err)
 				return 0, nil, err
 			} else if cerr.Err == beanstalk.ErrNotFound {
@@ -30,11 +29,11 @@ func ClearAnswer(conn *Connection, token string) (id uint64, a *Answer, err erro
 		}
 		glog.Infof("ClearAnswer: Peek Ready: id: %d", id)
 
-		err = conn.Conn.Delete(
+		_err = conn.Conn.Delete(
 			id, // id
 		)
-		if err != nil {
-			if cerr, ok := err.(beanstalk.ConnError); !ok {
+		if _err != nil {
+			if cerr, ok := _err.(beanstalk.ConnError); !ok {
 				glog.Errorf("ClearAnswer: Non-ConnError: %#v", err)
 				return 0, nil, err
 			} else if cerr.Err == beanstalk.ErrNotFound {
@@ -48,7 +47,7 @@ func ClearAnswer(conn *Connection, token string) (id uint64, a *Answer, err erro
 		lastBody = body
 	}
 
-	err = json.NewDecoder(bytes.NewReader(lastBody)).Decode(a)
+	a, err = AnswerFromJSONBytes(lastBody)
 	if err != nil {
 		glog.Errorf("ClearAnswer: Decode JSON: %#v", err)
 		return 0, nil, err

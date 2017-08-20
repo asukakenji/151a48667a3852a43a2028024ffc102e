@@ -34,7 +34,7 @@ func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
 		goto HandleError
 	}
 
-	err = taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.MyError {
+	err = taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.Error {
 		_id, _dr, _err := taskqueue.GetAnswer1(conn, token)
 		id, dr = _id, _dr
 		return _err
@@ -51,7 +51,7 @@ func GetShortestDrivingRoute(w http.ResponseWriter, req *http.Request) {
 	return
 
 HandleError:
-	if myerr, ok := err.(common.MyError); ok {
+	if myerr, ok := err.(common.Error); ok {
 		glog.Errorf("GetShortestDrivingRoute: %s", myerr.ErrorDetails())
 	} else {
 		glog.Errorf("GetShortestDrivingRoute: type assertion failed for error %#v", err)

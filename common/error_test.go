@@ -6,7 +6,7 @@ import (
 )
 
 func TestWrappedError(t *testing.T) {
-	var _ MyError = WrappedError{}
+	var _ Error = WrappedError{}
 	var _ Causer = WrappedError{}
 	err0 := fmt.Errorf("test")
 	err := WrapError(err0, "ad7ae720-b6e2-4eb9-8e9b-c9dbd009758b")
@@ -23,7 +23,7 @@ func TestWrappedError(t *testing.T) {
 }
 
 func TestJSONEncodeError(t *testing.T) {
-	var _ MyError = JSONEncodeError{}
+	var _ Error = JSONEncodeError{}
 	var _ Causer = JSONEncodeError{}
 	err0 := fmt.Errorf("test")
 	err := NewJSONEncodeError(err0, "b48b9aae-1abc-444a-9db8-89f3778d11ea")
@@ -40,7 +40,7 @@ func TestJSONEncodeError(t *testing.T) {
 }
 
 func TestJSONDecodeError(t *testing.T) {
-	var _ MyError = JSONDecodeError{}
+	var _ Error = JSONDecodeError{}
 	var _ Causer = JSONDecodeError{}
 	err0 := fmt.Errorf("test")
 	err := NewJSONDecodeError(err0, "3ced8e3b-82e9-42ab-acd5-47e585bb7f11")
@@ -57,7 +57,7 @@ func TestJSONDecodeError(t *testing.T) {
 }
 
 func TestInvalidTokenError(t *testing.T) {
-	var _ MyError = InvalidTokenError{}
+	var _ Error = InvalidTokenError{}
 	token := "0939d991-f6ee-4beb-997d-2d3b610b1a4f"
 	err := NewInvalidTokenError(token, "d9d26801-f7f9-4d1f-bddb-6e9d2b1706b4")
 	if err.Token() != token {

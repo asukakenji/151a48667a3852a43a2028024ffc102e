@@ -10,7 +10,7 @@ import (
 )
 
 // TODO: Error handling not yet updated
-func GetAnswer2(conn *Connection, token string) (id uint64, a *Answer, err common.MyError) {
+func GetAnswer2(conn *Connection, token string) (id uint64, a *Answer, err common.Error) {
 	tube := beanstalk.Tube{
 		Conn: conn.Conn,
 		Name: token,
@@ -40,7 +40,7 @@ func GetAnswer2(conn *Connection, token string) (id uint64, a *Answer, err commo
 	return id, a, nil
 }
 
-func GetAnswer1(conn *Connection, token string) (id uint64, dr *common.DrivingRoute, err common.MyError) {
+func GetAnswer1(conn *Connection, token string) (id uint64, dr *common.DrivingRoute, err common.Error) {
 	id, a, err := GetAnswer2(conn, token)
 	if err != nil {
 		return 0, nil, err

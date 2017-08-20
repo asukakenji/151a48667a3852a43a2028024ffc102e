@@ -4,7 +4,7 @@ import "googlemaps.github.io/maps"
 
 var (
 	// Input: []string{"22.372081,114.107877", "22.284419,114.159510", "22.326442,114.167811"}
-	dmr1 = &maps.DistanceMatrixResponse{
+	resp1 = &maps.DistanceMatrixResponse{
 		OriginAddresses: []string{
 			"11 Hoi Shing Rd, Tsuen Wan, Hong Kong",
 			"Laguna City, Central, Hong Kong",
@@ -113,7 +113,7 @@ var (
 	}
 
 	// Input: []string{"22.324339,114.169027", "22.147034,113.559835"}
-	dmr2 = &maps.DistanceMatrixResponse{
+	resp2 = &maps.DistanceMatrixResponse{
 		OriginAddresses: []string{
 			"142 Prince Edward Rd W, Mong Kok, Hong Kong",
 			"22.147034,113.559835",
@@ -171,7 +171,7 @@ var (
 	}
 
 	// Input: []string{"90.100000,-60.528112", "80.262833,-60.528112"}
-	dmr3 = &maps.DistanceMatrixResponse{
+	resp3 = &maps.DistanceMatrixResponse{
 		OriginAddresses: []string{
 			"",
 			"",
@@ -229,7 +229,7 @@ var (
 	}
 
 	// Fake
-	dmrX = &maps.DistanceMatrixResponse{
+	respX = &maps.DistanceMatrixResponse{
 		OriginAddresses: []string{
 			"",
 			"",

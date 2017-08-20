@@ -8,7 +8,7 @@ import (
 )
 
 func TestInsufficientLocationCountError(t *testing.T) {
-	var _ common.MyError = InsufficientLocationCountError{}
+	var _ common.Error = InsufficientLocationCountError{}
 	locs := common.Locations{}
 	err := NewInsufficientLocationCountError(locs, "9240926c-d38d-4683-aeb1-c0c76cc85479")
 	if !reflect.DeepEqual(err.Locations(), locs) {
@@ -24,7 +24,7 @@ func TestInsufficientLocationCountError(t *testing.T) {
 }
 
 func TestInvalidLocationError(t *testing.T) {
-	var _ common.MyError = InvalidLocationError{}
+	var _ common.Error = InvalidLocationError{}
 	locs0 := common.Locations{
 		{"22.284419", "114.159510", "22.326442"},
 		{"22.372081", "114.107877"},
@@ -67,7 +67,7 @@ func TestInvalidLocationError(t *testing.T) {
 }
 
 func TestLatitudeError(t *testing.T) {
-	var _ common.MyError = LatitudeError{}
+	var _ common.Error = LatitudeError{}
 	locs0 := common.Locations{
 		{"90.372081", "114.107877"},
 		{"22.284419", "114.159510"},
@@ -110,7 +110,7 @@ func TestLatitudeError(t *testing.T) {
 }
 
 func TestLongitudeError(t *testing.T) {
-	var _ common.MyError = LongitudeError{}
+	var _ common.Error = LongitudeError{}
 	locs0 := common.Locations{
 		{"22.284419", "180.159510"},
 		{"22.372081", "114.107877"},

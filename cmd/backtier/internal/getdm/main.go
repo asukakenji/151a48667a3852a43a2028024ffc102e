@@ -9,17 +9,17 @@ import (
 	"googlemaps.github.io/maps"
 )
 
-func DumpDMR(dmr *maps.DistanceMatrixResponse) {
+func DumpResp(resp *maps.DistanceMatrixResponse) {
 	fmt.Printf("Origin Addresses:\n")
-	for _, addr := range dmr.OriginAddresses {
+	for _, addr := range resp.OriginAddresses {
 		fmt.Printf("  %q\n", addr)
 	}
 	fmt.Printf("Destination Addresses:\n")
-	for _, addr := range dmr.DestinationAddresses {
+	for _, addr := range resp.DestinationAddresses {
 		fmt.Printf("  %q\n", addr)
 	}
 	fmt.Printf("Distance Matrix Elements Row:\n")
-	for i, row := range dmr.Rows {
+	for i, row := range resp.Rows {
 		fmt.Printf("  %d:\n", i)
 		for j, elem := range row.Elements {
 			fmt.Printf("    %d:\n", j)
@@ -37,10 +37,10 @@ func main() {
 	apiKey := os.Args[1]
 	glocs := os.Args[2:]
 
-	dmr, err := lib.GetDistanceMatrix(apiKey, glocs)
+	resp, err := lib.GetDistanceMatrix(apiKey, glocs)
 	if err != nil {
 		panic(err)
 	}
 
-	DumpDMR(dmr)
+	DumpResp(resp)
 }

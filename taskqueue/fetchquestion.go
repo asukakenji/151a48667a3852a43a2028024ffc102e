@@ -8,7 +8,7 @@ import (
 	"github.com/kr/beanstalk"
 )
 
-func FetchQuestion(conn *Connection) (qid uint64, q *Question, err common.MyError) {
+func FetchQuestion(conn *Connection) (qid uint64, q *Question, err common.Error) {
 	for {
 		qid, body, _err := conn.Conn.Reserve(
 			TimeForever, // timeout

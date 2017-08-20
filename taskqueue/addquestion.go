@@ -10,7 +10,7 @@ import (
 
 // timeLimit = execution time limit
 // ttr = time to run
-func AddQuestion(conn *Connection, token string, locs common.Locations, ttr time.Duration) (qid uint64, err common.MyError) {
+func AddQuestion(conn *Connection, token string, locs common.Locations, ttr time.Duration) (qid uint64, err common.Error) {
 	now := time.Now()
 	q, err := Question{
 		Timestamp: now,

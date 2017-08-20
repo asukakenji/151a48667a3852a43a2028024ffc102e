@@ -8,7 +8,7 @@ import (
 	"github.com/kr/beanstalk"
 )
 
-func FetchGarbage(conn *Connection) (gid uint64, g *Garbage, err common.MyError) {
+func FetchGarbage(conn *Connection) (gid uint64, g *Garbage, err common.Error) {
 	tubeSet := beanstalk.NewTubeSet(
 		conn.Conn,
 		"garbage",

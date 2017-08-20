@@ -3,6 +3,8 @@ package lib
 import (
 	"fmt"
 
+	"github.com/asukakenji/151a48667a3852a43a2028024ffc102e/common"
+
 	"googlemaps.github.io/maps"
 )
 
@@ -10,11 +12,16 @@ type TokenCollisionError struct {
 	newQuestionID uint64
 	oldQuestionID uint64
 	token         string
-	hash          string
+	common.DefaultHasher
 }
 
 func NewTokenCollisionError(token string, newQuestionId, oldQuestionId uint64, hash string) TokenCollisionError {
-	return TokenCollisionError{newQuestionId, oldQuestionId, token, hash}
+	return TokenCollisionError{
+		newQuestionId,
+		oldQuestionId,
+		token,
+		common.NewDefaultHasher(hash),
+	}
 }
 
 func (err TokenCollisionError) NewQuestionID() uint64 {
@@ -27,9 +34,6 @@ func (err TokenCollisionError) OldQuestionID() uint64 {
 
 func (err TokenCollisionError) Token() string {
 	return err.token
-}
-func (err TokenCollisionError) Hash() string {
-	return err.hash
 }
 
 func (err TokenCollisionError) Error() string {
@@ -50,11 +54,16 @@ type RetryCountLimitExceededError struct {
 	questionID    uint64
 	maxRetryCount int
 	token         string
-	hash          string
+	common.DefaultHasher
 }
 
 func NewRetryCountLimitExceededError(token string, questionID uint64, maxRetryCount int, hash string) RetryCountLimitExceededError {
-	return RetryCountLimitExceededError{questionID, maxRetryCount, token, hash}
+	return RetryCountLimitExceededError{
+		questionID,
+		maxRetryCount,
+		token,
+		common.NewDefaultHasher(hash),
+	}
 }
 
 func (err RetryCountLimitExceededError) QuestionID() uint64 {
@@ -67,10 +76,6 @@ func (err RetryCountLimitExceededError) MaxRetryCount() int {
 
 func (err RetryCountLimitExceededError) Token() string {
 	return err.token
-}
-
-func (err RetryCountLimitExceededError) Hash() string {
-	return err.hash
 }
 
 func (err RetryCountLimitExceededError) Error() string {
@@ -88,13 +93,23 @@ func (err RetryCountLimitExceededError) ErrorDetails() string {
 }
 
 type LocationNotFoundError struct {
-	dmr *maps.DistanceMatrixResponse
-	row int
-	col int
+	resp *maps.DistanceMatrixResponse
+	row  int
+	col  int
+	common.DefaultHasher
+}
+
+func NewLocationNotFoundError(resp *maps.DistanceMatrixResponse, row, col int, hash string) LocationNotFoundError {
+	return LocationNotFoundError{
+		resp,
+		row,
+		col,
+		common.NewDefaultHasher(hash),
+	}
 }
 
 func (err LocationNotFoundError) DistanceMatrixResponse() *maps.DistanceMatrixResponse {
-	return err.dmr
+	return err.resp
 }
 
 func (err LocationNotFoundError) Row() int {
@@ -108,26 +123,36 @@ func (err LocationNotFoundError) Col() int {
 func (err LocationNotFoundError) Error() string {
 	return fmt.Sprintf(
 		"location not found: %q or %q",
-		err.dmr.OriginAddresses[err.row],
-		err.dmr.OriginAddresses[err.col],
+		err.resp.OriginAddresses[err.row],
+		err.resp.OriginAddresses[err.col],
 	)
 }
 
 func (err LocationNotFoundError) ErrorDetails() string {
 	return fmt.Sprintf(
 		"LocationNotFoundError (%d, %d): %#v",
-		err.row, err.col, err.dmr,
+		err.row, err.col, err.resp,
 	)
 }
 
 type RouteNotFoundError struct {
-	dmr *maps.DistanceMatrixResponse
-	row int
-	col int
+	resp *maps.DistanceMatrixResponse
+	row  int
+	col  int
+	common.DefaultHasher
+}
+
+func NewRouteNotFoundError(resp *maps.DistanceMatrixResponse, row, col int, hash string) RouteNotFoundError {
+	return RouteNotFoundError{
+		resp,
+		row,
+		col,
+		common.NewDefaultHasher(hash),
+	}
 }
 
 func (err RouteNotFoundError) DistanceMatrixResponse() *maps.DistanceMatrixResponse {
-	return err.dmr
+	return err.resp
 }
 
 func (err RouteNotFoundError) Row() int {
@@ -141,14 +166,68 @@ func (err RouteNotFoundError) Col() int {
 func (err RouteNotFoundError) Error() string {
 	return fmt.Sprintf(
 		"route not found: from %q to %q",
-		err.dmr.OriginAddresses[err.row],
-		err.dmr.OriginAddresses[err.col],
+		err.resp.OriginAddresses[err.row],
+		err.resp.OriginAddresses[err.col],
 	)
 }
 
 func (err RouteNotFoundError) ErrorDetails() string {
 	return fmt.Sprintf(
 		"RouteNotFoundError (%d, %d): %#v",
-		err.row, err.col, err.dmr,
+		err.row, err.col, err.resp,
+	)
+}
+
+type ConnectionError struct {
+	common.DefaultCauser
+	common.DefaultHasher
+}
+
+func NewConnectionError(cause error, hash string) ConnectionError {
+	return ConnectionError{
+		common.NewDefaultCauser(cause),
+		common.NewDefaultHasher(hash),
+	}
+}
+
+func (err ConnectionError) Error() string {
+	return fmt.Sprintf(
+		"map provider connection error (%s)",
+		err.Hash(),
+	)
+}
+
+func (err ConnectionError) ErrorDetails() string {
+	return fmt.Sprintf(
+		"ConnectionError (%s): %#v",
+		err.Hash(),
+		err.Cause(),
+	)
+}
+
+type ExternalAPIError struct {
+	common.DefaultCauser
+	common.DefaultHasher
+}
+
+func NewExternalAPIError(cause error, hash string) ExternalAPIError {
+	return ExternalAPIError{
+		common.NewDefaultCauser(cause),
+		common.NewDefaultHasher(hash),
+	}
+}
+
+func (err ExternalAPIError) Error() string {
+	return fmt.Sprintf(
+		"external API error (%s)",
+		err.Hash(),
+	)
+}
+
+func (err ExternalAPIError) ErrorDetails() string {
+	return fmt.Sprintf(
+		"ExternalAPIError (%s): %#v",
+		err.Hash(),
+		err.Cause(),
 	)
 }

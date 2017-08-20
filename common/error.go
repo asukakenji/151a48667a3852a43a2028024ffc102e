@@ -2,8 +2,42 @@ package common
 
 import "fmt"
 
+// Causer is a super-interface for types having a cause.
+type Causer interface {
+	Cause() error
+}
+
+type DefaultCauser struct {
+	cause error
+}
+
+func NewDefaultCauser(cause error) DefaultCauser {
+	return DefaultCauser{cause}
+}
+
+func (causer DefaultCauser) Cause() error {
+	return causer.cause
+}
+
+// Hasher is a super-interface for types having a hash.
+type Hasher interface {
+	Hash() string
+}
+
+type DefaultHasher struct {
+	hash string
+}
+
+func NewDefaultHasher(hash string) DefaultHasher {
+	return DefaultHasher{hash}
+}
+
+func (hasher DefaultHasher) Hash() string {
+	return hasher.hash
+}
+
 /*
-MyError is the root type of all errors defined in this project.
+Error is the root type of all errors defined in this project.
 It extends the error interfaces.
 
 The Error function required by the error interface
@@ -16,90 +50,78 @@ is used for returning an internal error message for logging:
 
 	ErrorDetails() string
 */
-type MyError interface {
-	Hash() string
+type Error interface {
+	Hasher
 	error
 	ErrorDetails() string
 }
 
-// WrapError wraps a (generic) error value to a MyError value.
-// Doing so allows the logic of the API client to be unified to deal with only MyError.
-//
-// The returned error implements the Causer interface.
-// The original error could be found by calling Cause.
-func WrapError(cause error, hash string) Causer {
-	return WrappedError{cause, hash}
+type CauserError interface {
+	Causer
+	Error
 }
 
 // WrappedError is used to implement the WrapError function.
 // It implements the Causer interface.
 type WrappedError struct {
-	cause error
-	hash  string
+	DefaultCauser
+	DefaultHasher
 }
 
-func (err WrappedError) Cause() error {
-	return err.cause
-}
-
-func (err WrappedError) Hash() string {
-	return err.hash
+// WrapError wraps a (generic) error value to a Error value.
+// Doing so allows the logic of the API client to be unified to deal with only Error.
+//
+// The returned error implements the Causer interface.
+// The original error could be found by calling Cause.
+func WrapError(cause error, hash string) CauserError {
+	return WrappedError{
+		DefaultCauser{cause},
+		DefaultHasher{hash},
+	}
 }
 
 func (err WrappedError) Error() string {
 	return fmt.Sprintf(
 		"internal server error (%s)",
-		err.hash,
+		err.Hash(),
 	)
 }
 
 func (err WrappedError) ErrorDetails() string {
 	return fmt.Sprintf(
 		"[%s] WrappedError: %#v",
-		err.hash,
-		err.cause,
+		err.Hash(),
+		err.Cause(),
 	)
-}
-
-// Causer is an interface for errors having a cause.
-// It extends the MyError interface.
-type Causer interface {
-	MyError
-	Cause() error
 }
 
 // JSONEncodeError is used to indicate an error occurred
 // when a value is encoded to a JSON message.
 // It implements the Causer interface.
 type JSONEncodeError struct {
-	cause error
-	hash  string
+	DefaultCauser
+	DefaultHasher
 }
 
 func NewJSONEncodeError(err error, hash string) JSONEncodeError {
-	return JSONEncodeError{err, hash}
-}
-
-func (err JSONEncodeError) Cause() error {
-	return err.cause
-}
-
-func (err JSONEncodeError) Hash() string {
-	return err.hash
+	return JSONEncodeError{
+		DefaultCauser{err},
+		DefaultHasher{hash},
+	}
 }
 
 func (err JSONEncodeError) Error() string {
 	return fmt.Sprintf(
 		"internal server error (%s)",
-		err.hash,
+		err.Hash(),
 	)
 }
 
 func (err JSONEncodeError) ErrorDetails() string {
 	return fmt.Sprintf(
 		"[%s] JSONEncodeError: %#v",
-		err.hash,
-		err.cause,
+		err.Hash(),
+		err.Cause(),
 	)
 }
 
@@ -107,68 +129,62 @@ func (err JSONEncodeError) ErrorDetails() string {
 // when a value is decoded from a JSON message.
 // It implements the Causer interface.
 type JSONDecodeError struct {
-	cause error
-	hash  string
+	DefaultCauser
+	DefaultHasher
 }
 
 func NewJSONDecodeError(err error, hash string) JSONDecodeError {
-	return JSONDecodeError{err, hash}
-}
-
-func (err JSONDecodeError) Cause() error {
-	return err.cause
-}
-
-func (err JSONDecodeError) Hash() string {
-	return err.hash
+	return JSONDecodeError{
+		DefaultCauser{err},
+		DefaultHasher{hash},
+	}
 }
 
 func (err JSONDecodeError) Error() string {
 	return fmt.Sprintf(
 		"invalid JSON (%s)",
-		err.hash,
+		err.Hash(),
 	)
 }
 
 func (err JSONDecodeError) ErrorDetails() string {
 	return fmt.Sprintf(
 		"[%s] JSONDecodeError: %#v",
-		err.hash,
-		err.cause,
+		err.Hash(),
+		err.Cause(),
 	)
 }
 
 // InvalidTokenError indicates an invalid token.
-// It implements the MyError interface.
+// It implements the Error interface.
 type InvalidTokenError struct {
 	token string
-	hash  string
+	DefaultHasher
 }
 
 func NewInvalidTokenError(token, hash string) InvalidTokenError {
-	return InvalidTokenError{token, hash}
+	return InvalidTokenError{
+		token,
+		DefaultHasher{hash},
+	}
 }
 
 func (err InvalidTokenError) Token() string {
 	return err.token
 }
 
-func (err InvalidTokenError) Hash() string {
-	return err.hash
-}
-
 func (err InvalidTokenError) Error() string {
 	return fmt.Sprintf(
 		"invalid token: %q (%s)",
 		err.token,
-		err.hash,
+		err.Hash(),
 	)
 }
 
 func (err InvalidTokenError) ErrorDetails() string {
 	return fmt.Sprintf(
 		"[%s] InvalidTokenError: %q",
-		err.hash,
+		err.Hash(),
 		err.token,
 	)
 }

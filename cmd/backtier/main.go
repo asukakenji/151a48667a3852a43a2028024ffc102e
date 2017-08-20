@@ -46,8 +46,8 @@ func main() {
 		var qid uint64
 		var q *taskqueue.Question
 		var rc int
-		err := taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.MyError {
-			var err2 common.MyError
+		err := taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.Error {
+			var err2 common.Error
 			for {
 				qid, q, err2 = taskqueue.FetchQuestion(conn)
 				if err2 != nil {
@@ -98,13 +98,13 @@ func main() {
 
 				glocs := lib.LocationsToGoogleMapsLocations(q.Locations)
 
-				dmr, err2 := lib.GetDistanceMatrix(apiKey, glocs)
+				resp, err2 := lib.GetDistanceMatrix(apiKey, glocs)
 				if err2 != nil {
 					glog.Errorf("[%s] main: cannot get distance matrix", err2.Hash())
 					return err2
 				}
 
-				m, err2 := lib.GoogleMapsMatrixToMatrix(dmr)
+				m, err2 := lib.GoogleMapsMatrixToMatrix(resp)
 				if err2 != nil {
 					glog.Errorf("[%s] main: cannot convert Google Maps Matrix to Matrix", err2.Hash())
 					return err2
@@ -121,7 +121,7 @@ func main() {
 				glog.Infof("main: cost: %d, path: %v", cost, path)
 
 				locationPath := lib.PathToLocationPath(q.Locations, path)
-				totalTime := int(lib.CalculateTotalTime(dmr, path).Seconds())
+				totalTime := int(lib.CalculateTotalTime(resp, path).Seconds())
 
 				aids, err2 := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
 					Status:        "success",
@@ -138,7 +138,7 @@ func main() {
 		})
 		if err != nil {
 			glog.Errorf("main: %#v", err)
-			taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.MyError {
+			taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.Error {
 				aidf, err2 := taskqueue.SetAnswer(conn, q.Token, qid, rc, &common.DrivingRoute{
 					Status: "failure",
 					Error:  err.Error(),

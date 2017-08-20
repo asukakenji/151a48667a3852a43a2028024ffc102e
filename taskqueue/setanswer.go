@@ -9,7 +9,7 @@ import (
 	"github.com/kr/beanstalk"
 )
 
-func SetAnswer(conn *Connection, token string, qid uint64, rc int, dr *common.DrivingRoute) (aid uint64, err common.MyError) {
+func SetAnswer(conn *Connection, token string, qid uint64, rc int, dr *common.DrivingRoute) (aid uint64, err common.Error) {
 	now := time.Now()
 	a, err := Answer{
 		Timestamp:    now,

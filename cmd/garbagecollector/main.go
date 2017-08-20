@@ -26,7 +26,7 @@ func main() {
 	addr := "127.0.0.1:11300" // TODO: Customize: addr
 
 	for {
-		err := taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.MyError {
+		err := taskqueue.WithConnection(addr, func(conn *taskqueue.Connection) common.Error {
 			for {
 				gid, g, _err := taskqueue.FetchGarbage(conn)
 				if _err != nil {

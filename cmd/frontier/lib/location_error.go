@@ -7,9 +7,9 @@ import (
 )
 
 // LocationsError is used to indicate an invalid Locations value.
-// It extends the MyError interface.
+// It extends the common.Error interface.
 type LocationsError interface {
-	common.MyError
+	common.Error
 	Locations() common.Locations
 }
 
@@ -18,33 +18,32 @@ type LocationsError interface {
 // It implements the LocationsError interface.
 type InsufficientLocationCountError struct {
 	locs common.Locations
-	hash string
+	common.DefaultHasher
 }
 
 func NewInsufficientLocationCountError(locs common.Locations, hash string) InsufficientLocationCountError {
-	return InsufficientLocationCountError{locs, hash}
+	return InsufficientLocationCountError{
+		locs,
+		common.NewDefaultHasher(hash),
+	}
 }
 
 func (err InsufficientLocationCountError) Locations() common.Locations {
 	return err.locs
 }
 
-func (err InsufficientLocationCountError) Hash() string {
-	return err.hash
-}
-
 func (err InsufficientLocationCountError) Error() string {
 	return fmt.Sprintf(
 		"insufficient number of locations: expected >= 2, got %d (%s)",
 		len(err.locs),
-		err.hash,
+		err.Hash(),
 	)
 }
 
 func (err InsufficientLocationCountError) ErrorDetails() string {
 	return fmt.Sprintf(
 		"[%s] InsufficientLocationCountError: %#v",
-		err.hash,
+		err.Hash(),
 		err.locs,
 	)
 }
@@ -55,11 +54,15 @@ func (err InsufficientLocationCountError) ErrorDetails() string {
 type InvalidLocationError struct {
 	locs  common.Locations
 	index int
-	hash  string
+	common.DefaultHasher
 }
 
 func NewInvalidLocationError(locs common.Locations, index int, hash string) InvalidLocationError {
-	return InvalidLocationError{locs, index, hash}
+	return InvalidLocationError{
+		locs,
+		index,
+		common.NewDefaultHasher(hash),
+	}
 }
 
 func (err InvalidLocationError) Locations() common.Locations {
@@ -70,28 +73,24 @@ func (err InvalidLocationError) Index() int {
 	return err.index
 }
 
-func (err InvalidLocationError) Hash() string {
-	return err.hash
-}
-
 func (err InvalidLocationError) Error() string {
 	if err.index == 0 {
 		return fmt.Sprintf(
 			"invalid route start location (%s)",
-			err.hash,
+			err.Hash(),
 		)
 	}
 	return fmt.Sprintf(
 		"invalid drop off location #%d (%s)",
 		err.index,
-		err.hash,
+		err.Hash(),
 	)
 }
 
 func (err InvalidLocationError) ErrorDetails() string {
 	return fmt.Sprintf(
 		"[%s] InvalidLocationError: %#v",
-		err.hash,
+		err.Hash(),
 		err.locs[err.index],
 	)
 }
@@ -102,11 +101,15 @@ func (err InvalidLocationError) ErrorDetails() string {
 type LatitudeError struct {
 	locs  common.Locations
 	index int
-	hash  string
+	common.DefaultHasher
 }
 
 func NewLatitudeError(locs common.Locations, index int, hash string) LatitudeError {
-	return LatitudeError{locs, index, hash}
+	return LatitudeError{
+		locs,
+		index,
+		common.NewDefaultHasher(hash),
+	}
 }
 
 func (err LatitudeError) Locations() common.Locations {
@@ -117,30 +120,26 @@ func (err LatitudeError) Index() int {
 	return err.index
 }
 
-func (err LatitudeError) Hash() string {
-	return err.hash
-}
-
 func (err LatitudeError) Error() string {
 	if err.index == 0 {
 		return fmt.Sprintf(
 			"invalid route start latitude: %q (%s)",
 			err.locs[err.index][0],
-			err.hash,
+			err.Hash(),
 		)
 	}
 	return fmt.Sprintf(
 		"invalid drop off latitude #%d: %q (%s)",
 		err.index,
 		err.locs[err.index][0],
-		err.hash,
+		err.Hash(),
 	)
 }
 
 func (err LatitudeError) ErrorDetails() string {
 	return fmt.Sprintf(
 		"[%s] LatitudeError: %#v",
-		err.hash,
+		err.Hash(),
 		err.locs[err.index][0],
 	)
 }
@@ -151,11 +150,15 @@ func (err LatitudeError) ErrorDetails() string {
 type LongitudeError struct {
 	locs  common.Locations
 	index int
-	hash  string
+	common.DefaultHasher
 }
 
 func NewLongitudeError(locs common.Locations, index int, hash string) LongitudeError {
-	return LongitudeError{locs, index, hash}
+	return LongitudeError{
+		locs,
+		index,
+		common.NewDefaultHasher(hash),
+	}
 }
 
 func (err LongitudeError) Locations() common.Locations {
@@ -166,30 +169,26 @@ func (err LongitudeError) Index() int {
 	return err.index
 }
 
-func (err LongitudeError) Hash() string {
-	return err.hash
-}
-
 func (err LongitudeError) Error() string {
 	if err.index == 0 {
 		return fmt.Sprintf(
 			"invalid route start longitude: %q (%s)",
 			err.locs[err.index][1],
-			err.hash,
+			err.Hash(),
 		)
 	}
 	return fmt.Sprintf(
 		"invalid drop off longitude #%d: %q (%s)",
 		err.index,
 		err.locs[err.index][1],
-		err.hash,
+		err.Hash(),
 	)
 }
 
 func (err LongitudeError) ErrorDetails() string {
 	return fmt.Sprintf(
 		"[%s] LongitudeError: %#v",
-		err.hash,
+		err.Hash(),
 		err.locs[err.index][1],
 	)
 }
