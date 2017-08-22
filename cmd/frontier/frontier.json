@@ -1,0 +1,5 @@
+{
+  "listen_address": ":8080",
+  "task_queue_address": "127.0.0.1:11300",
+  "time_limit_for_finding_answer": 5000000000
+}
