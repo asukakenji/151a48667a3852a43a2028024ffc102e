@@ -19,6 +19,7 @@ Given a starting location and a list of drop-off locations, this project finds t
   - [Gorilla Mux](#gorilla-mux)
   - [Google Logging Module](#google-logging-module)
   - [Beanstalk](#beanstalk)
+  - [UUID package for Go language](#uuid-package-for-go-language)
   - [Google Maps Distance Matrix API](#google-maps-distance-matrix-api)
 - [To Be Improved](#to-be-improved)
 
@@ -104,7 +105,7 @@ Gorilla Mux implements an HTTP request router and dispatcher. It is used to impl
 
 Beanstalk is a simple, fast work queue (task queue / job queue). It is used to implement Task Queue.
 
-- Website: http://kr.github.io/beanstalkd/
+- Website: https://kr.github.io/beanstalkd/
 - GitHub (Server): https://github.com/kr/beanstalkd
 - GitHub (Client): https://github.com/kr/beanstalk
 
@@ -114,6 +115,12 @@ Google Maps Distance Matrix API provides duration and distance values based on t
 
 - Website: https://developers.google.com/maps/documentation/distance-matrix/
 - GitHub: https://github.com/googlemaps/google-maps-services-go
+
+### UUID package for Go language
+
+This package provides pure Go implementation of Universally Unique Identifier (UUID). It is used in the `common` package to generate new tokens.
+
+- GitHub: https://github.com/satori/go.uuid
 
 ### Google Logging Module
 
