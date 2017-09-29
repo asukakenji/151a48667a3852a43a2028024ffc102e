@@ -8,7 +8,7 @@ SIU, Ching Pong (a.k.a. Asuka Kenji)
 
 ## License
 
-Any commercial use of any part in this project is prohibited, except with the prior written approval of the author.
+Any commercial use of this project and products derived from it is prohibited, except with the prior written approval of the author. For non-commercial use, the MIT License applies.
 
 ## Table of Contents
 
@@ -118,7 +118,7 @@ Build the Docker image:
 
 ![System Architecture Diagram](img/sad.png)
 
-Visit [here](https://drive.google.com/file/d/0B6JV6ICUUqcuQ1B0M3FQLUk2ZkU/view?usp=sharing) for full-size diagram.
+Visit [here](https://drive.google.com/file/d/0B6JV6ICUUqcuQ1B0M3FQLUk2ZkU/view?usp=sharing) for the full-size diagram.
 
 ## Directory Structure
 
@@ -240,6 +240,6 @@ Google Logging Module provides leveled execution logs for Go. It is used everywh
 - Write a connection pool for Task Queue.
 - Orchestra to make the tiers to be-born if down.
 - Implement Branch-and-Bound to support more locations, and use less memory, and use shorter execution time.
-- Use the Golang `"context"` mechanism to limit the runtime of each task.
+- Use the Golang `"context"` mechanism to cascade runtime limits of each task.
 
 TODO: Write this
