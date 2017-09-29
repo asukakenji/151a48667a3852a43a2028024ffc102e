@@ -2,41 +2,38 @@
 
 Given a starting location and a list of drop-off locations, this project finds the shortest driving path by making use of a map provider (Google Maps Distance Matrix API) and applying a Travelling Salesman algorithm (brute force or Held & Karp).
 
+## Author
+
+SIU, Ching Pong (a.k.a. Asuka Kenji)
+
+## License
+
+Any commercial use of any part in this project is prohibited, except with the prior written approval of the author.
+
 ## Table of Contents
 
 - [Getting Started](#getting-started)
   - [Building](#building)
-    - [Front-Tier](#front-tier)
-    - [Back-Tier](#back-tier)
-    - [Garbage Collector](#garbage-collector)
   - [Running](#running)
-    - [Task Queue](#task-queue)
-    - [Front-Tier](#front-tier-1)
-    - [Backtier](#back-tier-1)
-    - [Garbage Collector](#garbage-collector-1)
+- [System Architecture Diagram](#system-architecture-diagram)
+- [Directory Structure](#directory-structure)
 - [Project Structure](#project-structure)
-  - [Front-Tier](#front-tier-2)
-  - [Task Queue](#task-queue-1)
+  - [Front-Tier](#front-tier)
+  - [Task Queue](#task-queue)
     - [Question](#question)
     - [Answer](#answer)
     - [Garbage](#garbage)
-  - [Back-Tier](#back-tier-2)
-  - [Garbage Collector](#garbage-collector-2)
+  - [Back-Tier](#back-tier)
+  - [Garbage Collector](#garbage-collector)
 - [Project Architecture](#project-architecture)
-  - [Directory Structure](#directory-structure)
 - [Dependencies](#dependencies)
-  - [Gorilla Mux](#gorilla-mux)
-  - [Google Logging Module](#google-logging-module)
-  - [Beanstalk](#beanstalk)
-  - [UUID package for Go language](#uuid-package-for-go-language)
-  - [Google Maps Distance Matrix API](#google-maps-distance-matrix-api)
 - [To Be Improved](#to-be-improved)
 
 ## Getting Started
 
 ### Building
 
-#### Front-Tier
+#### Building [Front-Tier](#front-tier)
 
 Create a new directory and change the current directory to it:
 
@@ -57,7 +54,7 @@ Build the Docker image:
 
     docker build -t frontier-image .
 
-#### Back-Tier
+#### Building [Back-Tier](#back-tier)
 
 Create a new directory and change the current directory to it:
 
@@ -78,7 +75,7 @@ Build the Docker image:
 
     docker build -t backtier-image .
 
-#### Garbage Collector
+#### Building [Garbage Collector](#garbage-collector)
 
 Create a new directory and change the current directory to it:
 
@@ -101,30 +98,70 @@ Build the Docker image:
 
 ### Running
 
-#### Task Queue
+#### Running [Task Queue](#task-queue)
 
     docker run schickling/beanstalkd
 
-### Front-Tier
+#### Running [Front-Tier](#front-tier)
 
     docker run frontier-image
 
-### Back-Tier
+#### Running [Back-Tier](#back-tier)
 
     docker run backtier-image
 
-### Garbage Collector
+#### Running [Garbage Collector](#garbage-collector)
 
     docker run garbagecollector-image
+
+## System Architecture Diagram
+
+![System Architecture Diagram](img/sad.png)
+
+Visit [here](https://drive.google.com/file/d/0B6JV6ICUUqcuQ1B0M3FQLUk2ZkU/view?usp=sharing) for full-size diagram.
+
+## Directory Structure
+
+    + (project root)
+    ├── bitstring
+    ├── cmd
+    │   ├── backtier
+    │   │   ├── internal
+    │   │   │   └── getdm
+    │   │   └── lib
+    │   ├── frontier
+    │   │   └── lib
+    │   └── garbagecollector
+    ├── common
+    ├── constant
+    ├── matrix
+    ├── taskqueue
+    └── tsp
+        ├── bruteforce
+        └── heldkarp
+
+- `bitstring`: Contains algorithms for bit string manipulations intended to be used by Held & Karp algorithm (Dynamic Programming algorithm) for Travelling Salesman Problem.
+- `cmd/backtier`: Contains the backbone logic of [Back-Tier](#back-tier).
+- `cmd/backtier/internal/getdm`: Contains a short program for testing Google Maps API.
+- `cmd/backtier/lib`: Contains functions called by the backbone of [Back-Tier](#back-tier).
+- `cmd/frontier`: Contains the backbone logic of [Front-Tier](#front-tier).
+- `cmd/frontier/lib`: Contains functions called by the backbone of [Front-Tier](#front-tier).
+- `cmd/garbagecollector`: Contains the implementation of [Front-Tier](#front-tier).
+- `cmd/common`: Contains code shared by [Front-Tier](#front-tier), [Back-Tier](#back-tier), and [Garbage Collector](#garbage-collector).
+- `cmd/constant`: Contains constants used by the project.
+- `cmd/matrix`: Contains algorithms for matrix operations intended to be used by Branch-and-Bound algorithm for Travelling Salesman Problem.
+- `cmd/taskqueue`: Contains APIs for accessing the [Task Queue](#task-queue).
+- `cmd/tsp/bruteforce`: Contains a brute force algorithm (trying all permutations) for Travelling Salesman Problem.
+- `cmd/tsp/heldkarp`: Contains an implementation of Held & Karp algorithm (Dynamic Programming) for Travelling Salesman Problem.
 
 ## Project Structure
 
 The project is mainly divided into 4 parts:
 
-- Front-Tier (`frontier`)
-- Task Queue (`taskqueue`)
-- Back-Tier (`backtier`)
-- Garbage Collector (`garbagecollector`)
+- [Front-Tier](#front-tier) (`frontier`)
+- [Task Queue](#task-queue) (`taskqueue`)
+- [Back-Tier](#back-tier) (`backtier`)
+- [Garbage Collector](#garbage-collector) (`garbagecollector`)
 
 ### Front-Tier
 
@@ -159,26 +196,6 @@ Back-Tier is responsible for finding the solution for the query. After receiving
 Garbage Collector is responsible for cleaning up Task Queue. Questions and Answers that are too old are deleted to free the memory they used.
 
 ## Project Architecture
-
-### Directory Structure
-
-    + (project root)
-    ├── bitstring
-    ├── cmd
-    │   ├── backtier
-    │   │   ├── internal
-    │   │   │   └── getdm
-    │   │   └── lib
-    │   ├── frontier
-    │   │   └── lib
-    │   └── garbagecollector
-    ├── common
-    ├── constant
-    ├── matrix
-    ├── taskqueue
-    └── tsp
-        ├── bruteforce
-        └── heldkarp
 
 TODO: Write this (description)
 
@@ -223,6 +240,6 @@ Google Logging Module provides leveled execution logs for Go. It is used everywh
 - Write a connection pool for Task Queue.
 - Orchestra to make the tiers to be-born if down.
 - Implement Branch-and-Bound to support more locations, and use less memory, and use shorter execution time.
-- Use the Golang `"context"` mechanism (new feature) to limit the runtime of each task.
+- Use the Golang `"context"` mechanism to limit the runtime of each task.
 
 TODO: Write this
