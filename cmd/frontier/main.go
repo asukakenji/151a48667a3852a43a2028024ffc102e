@@ -17,24 +17,39 @@ type Config struct {
 	TimeLimitForFindingAnswer time.Duration `json:"time_limit_for_finding_answer"` // Default: 5 * time.Second
 }
 
-func ReadConfig() *Config {
+var (
+	config *Config
+)
+
+func init() {
+	config = &Config{
+		ListenAddress:             ":8080",
+		TaskQueueAddress:          "127.0.0.1:11300",
+		TimeLimitForFindingAnswer: 5 * time.Second,
+	}
+	flag.StringVar(&config.ListenAddress, "listen", config.ListenAddress, "The address to which the server listens")
+	flag.StringVar(&config.TaskQueueAddress, "queue", config.TaskQueueAddress, "The address of the task queue")
+	flag.Int64Var((*int64)(&config.TimeLimitForFindingAnswer), "timeLimitA", int64(config.TimeLimitForFindingAnswer), "The time limit for finding the answer in nanoseconds")
+}
+
+func ReadConfig(config *Config) {
 	file, err := os.Open("frontier.json")
 	if err != nil {
-		glog.Fatalf(`Cannot open "frontier.json": %s`, err.Error())
-		return nil
+		glog.Infof(`Cannot open "frontier.json": %s`, err.Error())
+		return
 	}
 	defer file.Close()
 
-	var config *Config
 	err = json.NewDecoder(file).Decode(config)
 	if err != nil {
-		glog.Fatalf(`Failed to read "frontier.json: %s"`, err.Error())
-		return nil
+		glog.Errorf(`Failed to read "frontier.json: %s"`, err.Error())
 	}
-	return config
 }
 
 func main() {
+	// Read the config file
+	ReadConfig(config)
+
 	// Check whether "-logtostderr=true" or "-logtostderr=false" is provided in
 	// command line. If yes, obey the command line option. Otherwise, use the
 	// default, "true".
@@ -48,9 +63,6 @@ func main() {
 	if !isLogToStderrProvided {
 		flag.Set("logtostderr", "true")
 	}
-
-	// Read the config file
-	config := ReadConfig()
 
 	// Setup and start an HTTP server.
 	router := mux.NewRouter()
